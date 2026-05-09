@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v2.5</title>
+  <title>中华美食千百道 v3.0</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -1606,7 +1606,11 @@ ${ratingHtml}
 
   // ── Init ──
   showSk();
-  fetch('https://raw.githubusercontent.com/lz2026km/ChineseRecipes500/main/recipes_data.json')
+  // 本地开发用 ./recipes_data.json，生产环境用 raw.githubusercontent.com（绕过 GitHub Pages CDN 500KB 限制）
+  const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
+    ? './recipes_data.json'
+    : 'https://raw.githubusercontent.com/lz2026km/ChineseRecipes500/main/recipes_data.json';
+  fetch(DATA_URL)
     .then(r=>{if(!r.ok) throw new Error('Failed to load'); return r.json();})
     .then(d=>{
       DATA=d;
