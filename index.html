@@ -882,6 +882,13 @@
     const m=document.getElementById('cpModal');
     if(m){ m.remove(); cuisinePanelOpen=false; }
   }
+  // Expose for global access (button onclick needs window scope)
+  window.openCuisinePanel=openCuisinePanel;
+  window.showCuisinePanel=showCuisinePanel;
+  window.closeCuisinePanel=closeCuisinePanel;
+  window.showCuisineDetail=showCuisineDetail;
+  window.CUISINE_DB=CUISINE_DB;
+  window.CUISINE_ICONS=CUISINE_ICONS;
 
   // ── Build search/keyword filter ──
   function buildSrcFilter(){
