@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食五百道 v1.0</title>
+  <title>中华美食千百道 v1.4</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -73,6 +73,20 @@
 
     .btn-rnd{height:38px;padding:0 16px;background:var(--c1);color:#fff;border:none;border-radius:19px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s,transform .15s}
     .btn-rnd:hover{background:#a8442e;transform:scale(1.03)}
+
+    /* ── Music button ── */
+    .hdr-music{width:38px;height:38px;border:none;background:transparent;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s;border:2px solid transparent;color:var(--mt);position:relative}
+    .hdr-music:hover{background:var(--bg)}
+    .hdr-music.on{color:var(--c3);border-color:rgba(212,175,55,.5)}
+    .hdr-music.on .music-icon{animation:musicSpin 8s linear infinite}
+    .hdr-music .music-waves{position:absolute;bottom:4px;right:4px;width:10px;height:10px;pointer-events:none}
+    .hdr-music .music-waves span{display:block;width:2.5px;height:2.5px;background:var(--c3);border-radius:50%;position:absolute;opacity:0}
+    .hdr-music.on .music-waves span{opacity:1;animation:waveBounce .8s ease-in-out infinite}
+    .hdr-music .music-waves span:nth-child(1){bottom:0;left:0;animation-delay:0s!important}
+    .hdr-music .music-waves span:nth-child(2){bottom:0;left:4px;animation-delay:.2s!important}
+    .hdr-music .music-waves span:nth-child(3){bottom:0;left:8px;animation-delay:.4s!important}
+    @keyframes musicSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    @keyframes waveBounce{0%,100%{height:2.5px;transform:translateY(0)}50%{height:7px;transform:translateY(-4px)}}
 
     /* ── Layout ── */
     .ly{display:flex;min-height:calc(100vh - 66px - 42px)}
@@ -243,6 +257,10 @@
     <div class="srch-hist" id="srchHist"></div>
   </div>
   <div class="hdr-actions">
+    <button class="hdr-music" id="musicBtn" title="背景音乐" aria-label="背景音乐">
+      <span class="music-icon">🎵</span>
+      <span class="music-waves"><span></span><span></span><span></span></span>
+    </button>
     <button class="hdr-btn" id="favBtn" title="收藏夹" aria-label="收藏夹">
       ❤️<span class="bdg" id="favBdg" style="display:none">0</span>
     </button>
@@ -343,6 +361,7 @@
   const LS_DLY   = 'cbr_dly_date';
   const LS_DLY_ID= 'cbr_dly_id';
   const LS_HIST  = 'cbr_hist';
+  const LS_MUSIC = 'cbr_music';
 
   function save(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
   function load(k,def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; }catch(e){ return def; } }
@@ -1069,6 +1088,100 @@
     if(e.key==='ArrowRight'){if(mIdx<filtered.length-1) openM(mIdx+1);}
   });
 
+  // ── Music Engine ──
+  let audioCtx = null, masterGain = null, musicPlaying = false;
+  let musicTimer = null, droneOsc = null, droneGain = null;
+  const PENTA = [261.63,293.66,329.63,392.00,440.00,523.25,587.33,659.25,784.00,880.00];
+  const BELL_NOTES = [523.25,587.33,659.25,784.00,880.00,1046.50,1174.66,1318.51];
+  function startAudio(){
+    if(!audioCtx){ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); masterGain = audioCtx.createGain(); masterGain.gain.value = 0.18; masterGain.connect(audioCtx.destination); }
+    if(audioCtx.state==='suspended') audioCtx.resume();
+  }
+  function stopAudio(){
+    if(musicTimer){ clearTimeout(musicTimer); musicTimer=null; }
+    if(droneGain){ try{droneGain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.5);}catch(e){} setTimeout(()=>{ try{droneGain.disconnect();}catch(e){} droneGain=null; },600); }
+    if(droneOsc){ setTimeout(()=>{ try{droneOsc.stop();}catch(e){} droneOsc=null; },600); }
+  }
+  function playNote(freq,startTime,duration,vol,vibHz=4.8){
+    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    const lfo = audioCtx.createOscillator(), lfoG = audioCtx.createGain();
+    lfo.frequency.value = vibHz; lfoG.gain.value = freq*0.008;
+    lfo.connect(lfoG); lfoG.connect(osc.frequency);
+    lfo.start(startTime); lfo.stop(startTime+duration+0.1);
+    g.gain.setValueAtTime(0,startTime); g.gain.linearRampToValueAtTime(vol,startTime+0.04);
+    g.gain.exponentialRampToValueAtTime(0.001,startTime+duration);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(startTime); osc.stop(startTime+duration+0.05);
+  }
+  function playDrone(){
+    if(!audioCtx) return;
+    droneGain = audioCtx.createGain(); droneGain.gain.value = 0; droneGain.connect(masterGain);
+    [PENTA[0], PENTA[0]*1.002].forEach(f=>{
+      const o = audioCtx.createOscillator(), g2 = audioCtx.createGain();
+      o.type='sine'; o.frequency.value=f; g2.gain.value=0.06;
+      o.connect(g2); g2.connect(droneGain); o.start(); droneOsc=o;
+    });
+    droneGain.gain.linearRampToValueAtTime(0.07,audioCtx.currentTime+2);
+  }
+  function stopDrone(){
+    if(droneGain){ try{droneGain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.5);}catch(e){} setTimeout(()=>{ try{droneGain.disconnect();}catch(e){} droneGain=null; },600); }
+    if(droneOsc){ setTimeout(()=>{ try{droneOsc.stop();}catch(e){} droneOsc=null; },600); }
+  }
+  function generatePhrase(){
+    const phraseLen = 3 + Math.floor(Math.random()*3), phrase = [];
+    let lastIdx = Math.floor(Math.random()*5); phrase.push(lastIdx);
+    for(let i=1;i<phraseLen;i++){
+      const step = Math.random()<0.7 ? (Math.random()<0.5?1:-1) : (Math.random()<0.5?2:-2);
+      lastIdx = Math.max(0,Math.min(PENTA.length-1,lastIdx+step));
+      phrase.push(lastIdx);
+    }
+    return phrase;
+  }
+  function playMelodyPhrase(phrase,startOffset){
+    const now = audioCtx.currentTime + startOffset;
+    phrase.forEach((n,i)=>{
+      const noteDur = 1.0+Math.random()*0.8, vol = 0.08+Math.random()*0.05;
+      const t = now + i*0.85;
+      playNote(PENTA[n], t, noteDur, vol, 4.5+Math.random()*1.5);
+    });
+    return phrase.length*0.85;
+  }
+  function playBell(freq){
+    const now = audioCtx.currentTime, osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+    osc.type='sine'; osc.frequency.value=freq;
+    g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(0.06,now+0.01); g.gain.exponentialRampToValueAtTime(0.001,now+2.5);
+    osc.connect(g); g.connect(masterGain); osc.start(now); osc.stop(now+2.6);
+  }
+  function scheduleMusic(){
+    if(!musicPlaying || !audioCtx) return;
+    const phraseCount = 2+Math.floor(Math.random()*2);
+    let offset = 0;
+    const phrases = [];
+    for(let i=0;i<phraseCount;i++) phrases.push(generatePhrase());
+    phrases.forEach((p,i)=>{
+      const gap = i===0 ? 0 : 1.5+Math.random();
+      offset += gap; offset += playMelodyPhrase(p,offset);
+    });
+    if(Math.random()<0.4){
+      setTimeout(()=>{ if(musicPlaying) playBell(BELL_NOTES[Math.floor(Math.random()*BELL_NOTES.length)]); }, (offset+0.5)*1000);
+    }
+    musicTimer = setTimeout(scheduleMusic, (offset+3)*1000);
+  }
+  function toggleMusic(){
+    const btn = document.getElementById('musicBtn');
+    if(!musicPlaying){
+      startAudio(); musicPlaying=true; btn.classList.add('on'); localStorage.setItem(LS_MUSIC,'1'); playDrone(); scheduleMusic();
+    } else {
+      musicPlaying=false; btn.classList.remove('on'); localStorage.setItem(LS_MUSIC,'0'); stopAudio(); stopDrone();
+    }
+  }
+  function initMusic(){
+    const saved = localStorage.getItem(LS_MUSIC);
+    if(saved==='1'){ const btn = document.getElementById('musicBtn'); btn.addEventListener('click',()=>toggleMusic(),{once:true}); }
+    document.getElementById('musicBtn').addEventListener('click',()=>toggleMusic());
+  }
+
   // ── Init ──
   showSk();
   fetch('./recipes_data.json')
@@ -1081,6 +1194,7 @@
       selEras=['全部'];
       buildEraFilter(); buildTypeFilter(); buildCatFilter(); buildSrcFilter();
       buildQuickBar();
+      initMusic();
       render(); initDaily(); renderHist(); checkUrlParam();
     })
     .catch(err=>{
