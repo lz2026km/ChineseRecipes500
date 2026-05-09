@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v2.0</title>
+  <title>中华美食千百道 v2.1</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -70,6 +70,10 @@
     .hdr-btn{width:38px;height:38px;border:none;background:transparent;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s;position:relative}
     .hdr-btn:hover{background:var(--bg)}
     .hdr-btn .bdg{position:absolute;top:2px;right:2px;background:var(--c1);color:#fff;border-radius:50%;width:16px;height:16px;font-size:.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1}
+    .music-btn.on{color:var(--c3);animation:pulseBgm 1.5s ease-in-out infinite}
+    @keyframes pulseBgm{0%,100%{transform:scale(1)}50%{transform:scale(1.15)} }
+    .wave-wrap{position:fixed;top:66px;left:0;right:0;height:60px;background:rgba(253,246,236,.95);backdrop-filter:blur(8px);z-index:99;overflow:hidden;display:flex;align-items:center;justify-content:center}
+    [data-theme="dark"] .wave-wrap{background:rgba(28,20,16,.95)}
 
     .btn-rnd{height:38px;padding:0 16px;background:var(--c1);color:#fff;border:none;border-radius:19px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s,transform .15s}
     .btn-rnd:hover{background:#a8442e;transform:scale(1.03)}
@@ -273,9 +277,14 @@
       ❤️<span class="bdg" id="favBdg" style="display:none">0</span>
     </button>
     <button class="hdr-btn" id="themeBtn" title="切换主题" aria-label="切换深色模式">🌙</button>
+    <button class="hdr-btn music-btn" id="musicBtn" title="背景音乐" aria-label="背景音乐">🎵</button>
   </div>
   <button class="btn-rnd" id="rnd">🎲 随便看看</button>
 </header>
+<!-- 音波动画 -->
+<div class="wave-wrap" id="waveWrap" style="display:none">
+  <canvas id="waveCanvas" width="800" height="60"></canvas>
+</div>
 <div class="stbar" id="stbar">
   <span class="stbar-lbl">🌱 节气</span>
   <div id="stChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
@@ -1234,6 +1243,164 @@ ${ratingHtml}
     if(e.key==='ArrowLeft'){if(mIdx>0) openM(mIdx-1);}
     if(e.key==='ArrowRight'){if(mIdx<filtered.length-1) openM(mIdx+1);}
   });
+
+  // ── Background Music Engine (v2.1) ──
+  const LS_MUSIC='cr_music_on';
+  let audioCtx=null, masterGain=null, droneGain=null, melodyGain=null, bellGain=null;
+  let isPlaying=false, musicOn=false;
+  // 五声音阶频率（宫商角徵羽，C大调）
+  const NOTES=[261.63,293.66,329.63,392.00,440.00,523.25,587.33,659.25,784.00,880.00];
+  // 宫调旋律线（清远悠长）
+  const MELODY=[
+    [0,0,2,2,4,4,2],[0,2,4,4,2,0,-2],
+    [2,2,4,5,7,7,5],[4,5,7,7,5,4,2],
+    [0,0,2,4,5,7,5],[4,4,2,0,-2,0,0],
+    [2,4,5,7,7,5,4],[5,7,7,5,4,2,0],
+  ];
+  const DRONE_BASE=65.41; // C2 drone
+  let waveAnimId=null, waveCanvas=null, waveCtx=null;
+
+  function initAudio(){
+    if(audioCtx) return;
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    masterGain=audioCtx.createGain(); masterGain.gain.value=0.35; masterGain.connect(audioCtx.destination);
+    droneGain=audioCtx.createGain(); droneGain.gain.value=0.18; droneGain.connect(masterGain);
+    melodyGain=audioCtx.createGain(); melodyGain.gain.value=0.0; melodyGain.connect(masterGain);
+    bellGain=audioCtx.createGain(); bellGain.gain.value=0.0; bellGain.connect(masterGain);
+  }
+
+  function startDrone(){
+    const osc=audioCtx.createOscillator(); osc.type='sine'; osc.frequency.value=DRONE_BASE;
+    const osc2=audioCtx.createOscillator(); osc2.type='sine'; osc2.frequency.value=DRONE_BASE*1.005;
+    const lfo=audioCtx.createOscillator(); lfo.frequency.value=0.15;
+    const lfog=audioCtx.createGain(); lfog.gain.value=1.5;
+    lfo.connect(lfog); lfog.connect(osc.frequency);
+    const flt=audioCtx.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=400;
+    osc.connect(flt); osc2.connect(flt); flt.connect(droneGain);
+    osc.start(); osc2.start(); lfo.start();
+  }
+
+  function playNote(freq,startTime,dur,vol,type='sine',vibHz=4.5,vibDepth=3){
+    const osc=audioCtx.createOscillator(); osc.type=type; osc.frequency.value=freq;
+    if(vibHz>0){
+      const lfo=audioCtx.createOscillator(); lfo.frequency.value=vibHz;
+      const lfog=audioCtx.createGain(); lfog.gain.value=vibDepth;
+      lfo.connect(lfog); lfog.connect(osc.frequency); lfo.start(startTime); lfo.stop(startTime+dur+0.1);
+    }
+    const g=audioCtx.createGain();
+    g.gain.setValueAtTime(0,startTime);
+    g.gain.linearRampToValueAtTime(vol,startTime+0.05);
+    g.gain.setValueAtTime(vol,startTime+dur-0.08);
+    g.gain.linearRampToValueAtTime(0,startTime+dur);
+    osc.connect(g); g.connect(melodyGain);
+    osc.start(startTime); osc.stop(startTime+dur+0.1);
+  }
+
+  function playMelodyPhrase(phrase,phraseIdx){
+    if(!isPlaying) return;
+    const now=audioCtx.currentTime;
+    const step=0.55, gap=phraseIdx*phrase.length*step;
+    phrase.forEach((offset,ni)=>{
+      const baseIdx=Math.floor(Math.abs(offset)%NOTES.length);
+      const freq=NOTES[baseIdx]*0.5;
+      const vib=(ni%3===0)?5.2:4.2;
+      const vol=0.22+(Math.random()*0.08);
+      const t=now+gap+ni*step;
+      playNote(freq,t,step*2.8,vol,'sine',vib,2.5);
+    });
+  }
+
+  let bellTimers=[];
+  function scheduleBell(){
+    if(!isPlaying) return;
+    const delay=3500+Math.random()*8000;
+    const t=setTimeout(()=>{
+      if(!isPlaying) return;
+      const now=audioCtx.currentTime;
+      const baseFreq=[1046.5,1318.5,1568.0,2093.0][Math.floor(Math.random()*4)];
+      [1,2.756,5.404,8.933].forEach((h,i)=>
+        setTimeout(()=>{
+          if(!isPlaying) return;
+          const o=audioCtx.createOscillator(); o.type='sine'; o.frequency.value=baseFreq*h;
+          const g=audioCtx.createGain(); g.gain.setValueAtTime(0,audioCtx.currentTime);
+          g.gain.linearRampToValueAtTime(0.06/(i+1),audioCtx.currentTime+0.02);
+          g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+2.5);
+          o.connect(g); g.connect(bellGain); o.start(); o.stop(audioCtx.currentTime+2.6);
+        },i*180)
+      );
+      scheduleBell();
+    },delay);
+    bellTimers.push(t);
+  }
+
+  function startMelodyLoop(){
+    if(!isPlaying) return;
+    let phraseIdx=0;
+    (function loop(){
+      if(!isPlaying) return;
+      playMelodyPhrase(MELODY[phraseIdx%MELODY.length],phraseIdx);
+      phraseIdx++;
+      setTimeout(loop,9000);
+    })();
+  }
+
+  function drawWave(){
+    if(!waveCanvas||!isPlaying) return;
+    const W=waveCanvas.width, H=waveCanvas.height;
+    waveCtx.clearRect(0,0,W,H);
+    const cx=waveCtx.createLinearGradient(0,0,W,0);
+    cx.addColorStop(0,'rgba(212,175,55,0.3)');
+    cx.addColorStop(0.5,'rgba(212,175,55,0.9)');
+    cx.addColorStop(1,'rgba(212,175,55,0.3)');
+    const t=Date.now()*0.001;
+    for(let i=0;i<W;i++){
+      const y=H/2+Math.sin(i*0.03+t*2.1)*12*Math.sin(i*0.02+t*0.8)+Math.sin(i*0.06+t*3.2)*6;
+      if(i===0) waveCtx.beginPath();
+      else waveCtx.lineTo(i,y);
+    }
+    waveCtx.strokeStyle=cx; waveCtx.lineWidth=2.5; waveCtx.stroke();
+    waveCtx.shadowColor='rgba(212,175,55,0.6)'; waveCtx.shadowBlur=8;
+    for(let i=0;i<W;i++){
+      const y2=H/2+Math.sin(i*0.025+t*1.7+1)*10*Math.cos(i*0.015+t*0.5);
+      waveCtx.beginPath(); waveCtx.arc(i,y2,1.5,0,Math.PI*2);
+      waveCtx.fillStyle='rgba(212,175,55,0.4)'; waveCtx.fill();
+    }
+    waveAnimId=requestAnimationFrame(drawWave);
+  }
+
+  function toggleMusic(){
+    initAudio();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    musicOn=!musicOn;
+    isPlaying=musicOn;
+    const btn=document.getElementById('musicBtn');
+    const wrap=document.getElementById('waveWrap');
+    if(musicOn){
+      btn.textContent='🔔'; btn.classList.add('on');
+      wrap.style.display='flex';
+      startDrone();
+      startMelodyLoop();
+      scheduleBell();
+      // 渐入
+      melodyGain.gain.setTargetAtTime(0.55,audioCtx.currentTime,0.8);
+      bellGain.gain.setTargetAtTime(0.9,audioCtx.currentTime,1.2);
+      waveCanvas=document.getElementById('waveCanvas');
+      waveCtx=waveCanvas.getContext('2d');
+      drawWave();
+    } else {
+      btn.textContent='🎵'; btn.classList.remove('on');
+      wrap.style.display='none';
+      if(waveAnimId) cancelAnimationFrame(waveAnimId);
+      bellTimers.forEach(t=>clearTimeout(t)); bellTimers=[];
+      melodyGain.gain.setTargetAtTime(0,audioCtx.currentTime,0.5);
+      bellGain.gain.setTargetAtTime(0,audioCtx.currentTime,0.5);
+      setTimeout(()=>{ droneGain.disconnect(); melodyGain.disconnect(); bellGain.disconnect(); if(audioCtx) audioCtx.close(); audioCtx=null; },1200);
+    }
+    localStorage.setItem(LS_MUSIC,musicOn?'1':'0');
+  }
+
+  document.getElementById('musicBtn').onclick=toggleMusic;
+  if(localStorage.getItem(LS_MUSIC)==='1'){ musicOn=true; document.getElementById('musicBtn').textContent='🔔'; document.getElementById('musicBtn').classList.add('on'); }
 
   // ── Init ──
   showSk();
