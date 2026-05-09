@@ -3,21 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v2.1</title>
+  <title>中华美食千百道 v2.5</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
       --bg2:#F5EDE3;--tx2:#1A0F0A;
+      /* 节气主题色 v2.5 */
+      --season-primary:#C8553D;--season-secondary:#E8A87C;--season-accent:#D4AF37;
     }
-    [data-theme="dark"]{
-      --bg:#1C1410;--sf:#2A1E16;--tx:#F5EDE3;--mt:#A89080;--bd:#3D2E22;--sh:rgba(0,0,0,.3);
-      --bg2:#261A12;--tx2:#F5EDE3;
-    }
+    /* 四季主题 */
+    [data-season="spring"]{--season-primary:#7CB342;--season-secondary:#AED581;--season-accent:#F9A825;--bg:#F1F8E9;--sf:#FFFFFF;--tx:#2C3E1F;--mt:#689F38;--bd:#C5E1A5;--sh:rgba(44,24,16,.1);--bg2:#E8F5E9;--tx2:#1B5E20}
+    [data-season="summer"]{--season-primary:#D84315;--season-secondary:#FF7043;--season-accent:#FFB300;--bg:#FFF8E1;--sf:#FFFFFF;--tx:#3E2723;--mt:#F4511E;--bd:#FFCCBC;--sh:rgba(44,24,16,.1);--bg2:#FBE9E7;--tx2:#BF360C}
+    [data-season="autumn"]{--season-primary:#8D6E63;--season-secondary:#BCAAA4;--season-accent:#D4AF37;--bg:#F5F0EB;--sf:#FAFAFA;--tx:#3E2723;--mt:#795548;--bd:#D7CCC8;--sh:rgba(44,24,16,.1);--bg2:#EFEBE9;--tx2:#4E342E}
+    [data-season="winter"]{--season-primary:#546E7A;--season-secondary:#90A4AE;--season-accent:#B0BEC5;--bg:#ECEFF1;--sf:#FAFAFA;--tx:#263238;--mt:#607D8B;--bd:#CFD8DC;--sh:rgba(44,24,16,.1);--bg2:#E0F2F1;--tx2:#37474F}
+    [data-season="spring"] .aurora{background:linear-gradient(90deg,#7CB342,#AED581,#F9A825,#AED581,#7CB342,#F9A825);background-size:200% 100%}
+    [data-season="summer"] .aurora{background:linear-gradient(90deg,#D84315,#FF7043,#FFB300,#FF7043,#D84315,#FFB300);background-size:200% 100%}
+    [data-season="autumn"] .aurora{background:linear-gradient(90deg,#8D6E63,#BCAAA4,#D4AF37,#BCAAA4,#8D6E63,#D4AF37);background-size:200% 100%}
+    [data-season="winter"] .aurora{background:linear-gradient(90deg,#546E7A,#90A4AE,#B0BEC5,#90A4AE,#546E7A,#B0BEC5);background-size:200% 100%}
+    [data-theme="dark"]{--bg:#1C1410;--sf:#2A1E16;--tx:#F5EDE3;--mt:#A89080;--bd:#3D2E22;--sh:rgba(0,0,0,.3);--bg2:#261A12;--tx2:#F5EDE3}
+    [data-theme="dark"][data-season="spring"]{--bg:#1C2B18;--sf:#263521;--tx:#F1F8E9;--mt:#7CB342;--bd:#33691E;--sh:rgba(0,0,0,.4);--bg2:#1B3A14;--tx2:#AED581}
+    [data-theme="dark"][data-season="summer"]{--bg:#1A0E08;--sf:#2A1A12;--tx:#FFF8E1;--mt:#FF7043;--bd:#BF360C;--sh:rgba(0,0,0,.4);--bg2:#2A1A14;--tx2:#FFAB91}
+    [data-theme="dark"][data-season="autumn"]{--bg:#1A1410;--sf:#2A2420;--tx:#F5F0EB;--mt:#D4AF37;--bd:#5D4037;--sh:rgba(0,0,0,.4);--bg2:#2E2420;--tx2:#FFCC80}
+    [data-theme="dark"][data-season="winter"]{--bg:#1C2428;--sf:#263238;--tx:#ECEFF1;--mt:#90A4AE;--bd:#37474F;--sh:rgba(0,0,0,.4);--bg2:#263238;--tx2:#B0BEC5}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{font-size:18px;scroll-behavior:smooth}
     body{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;transition:background .3s,color .3s}
+    /* 水墨纹理背景 */
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.6}
+    body>*{position:relative;z-index:1}
     .aurora{height:6px;background:linear-gradient(90deg,#C8553D,#E8A87C,#D4AF37,#E8A87C,#C8553D,#D4AF37);background-size:200% 100%;animation:aurora 8s ease infinite}
     @keyframes aurora{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+    /* 首次访问淡入 */
+    .fade-in{animation:fadeIn 1.2s ease forwards}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
     /* ── 每日推荐横幅 ── */
     .dly{background:linear-gradient(135deg,#C8553D,#E8A87C);color:#fff;padding:10px 20px;display:flex;align-items:center;gap:12px;font-size:.875rem;cursor:pointer;transition:opacity .2s}
@@ -120,8 +138,9 @@
 
     .grd{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
     .card{background:var(--sf);border-radius:12px;box-shadow:0 2px 12px var(--sh);overflow:hidden;cursor:pointer;transition:transform .25s,box-shadow .25s,background .3s;border:1px solid var(--bd);outline:none;position:relative}
+    .card::after{content:'';position:absolute;inset:0;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(139,115,85,.15);pointer-events:none}
     .card:hover{transform:translateY(-4px);box-shadow:0 8px 24px var(--sh)}
-    .card:focus-visible{outline:3px solid var(--c3);outline-offset:2px}
+    .card:focus-visible{outline:3px solid var(--season-accent,var(--c3));outline-offset:2px}
     .card .fav{position:absolute;top:8px;right:8px;font-size:1.1rem;z-index:2;opacity:0;transition:opacity .15s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
     .card:hover .fav,.card.faved .fav{opacity:1}
     .card.faved .fav{opacity:1}
@@ -157,6 +176,8 @@
     .mb.on{display:flex}
     .md{background:var(--sf);border-radius:20px;box-shadow:0 8px 40px rgba(44,24,16,.22);max-width:800px;width:100%;max-height:88vh;overflow-y:auto;position:relative;animation:mdIn .25s ease;transition:background .3s}
     @keyframes mdIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .md.transitioning{animation:mdTrans .18s ease}
+    @keyframes mdTrans{from{opacity:.7;transform:scale(.98) translateX(8px)}to{opacity:1;transform:scale(1) translateX(0)}}
     .md-cls{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--sf);border-bottom:1px solid var(--bd);transition:background .3s}
     .md-id{font-size:.85rem;color:var(--mt);font-weight:600}
     .md-x{width:34px;height:34px;border:none;background:var(--bg);border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s}
@@ -247,6 +268,23 @@
     .share-pop-btn:hover{background:#a8442e}
     .share-pop-cb{width:100%;margin-top:8px;height:42px;background:var(--sf);border:1.5px solid var(--bd);border-radius:21px;font-size:.875rem;cursor:pointer;color:var(--tx);transition:all .12s}
     .share-pop-cb:hover{border-color:var(--c3);color:var(--c3)}
+    /* ── 右键/长按快捷菜单 ── */
+    .ctx-menu{position:fixed;z-index:3000;background:var(--sf);border-radius:12px;box-shadow:0 4px 20px rgba(44,24,16,.25);padding:6px 0;min-width:160px;border:1px solid var(--bd);display:none;animation:ctxIn .12s ease}
+    .ctx-menu.on{display:block}
+    @keyframes ctxIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+    .ctx-item{padding:9px 16px;font-size:.875rem;color:var(--tx);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;border-radius:0}
+    .ctx-item:hover{background:var(--bg)}
+    .ctx-item.danger{color:#c0392b}
+    .ctx-sep{height:1px;background:var(--bd);margin:4px 0}
+    /* ── 宜忌标签 ── */
+    .yi-ji{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
+    .yi-tag{padding:2px 8px;border-radius:8px;font-size:.7rem;font-weight:600}
+    .yi-tag.yi{background:rgba(76,175,80,.15);color:#2e7d32;border:1px solid rgba(76,175,80,.3)}
+    .ji-tag{padding:2px 8px;border-radius:8px;font-size:.7rem;font-weight:600;background:rgba(244,67,54,.12);color:#c62828;border:1px solid rgba(244,67,54,.25)}
+    /* ── 古诗词 ── */
+    .poem{margin:14px 0 6px;padding:12px 16px;background:linear-gradient(135deg,rgba(212,175,55,.06),rgba(200,85,61,.04));border-radius:12px;border:1px solid rgba(212,175,55,.2);position:relative}
+    .poem-title{font-size:.7rem;color:var(--mt);margin-bottom:4px;font-weight:600}
+    .poem-text{font-family:"KaiTi","STKaiti","楷体",serif;font-size:.9rem;color:var(--tx);line-height:1.9}
 
     @media(max-width:640px){
       .sd{display:none}
@@ -382,6 +420,14 @@
     <button class="share-pop-cb" id="shareWb">📤 分享到微博</button>
     <div style="text-align:center;margin-top:10px"><button class="fav-bk" id="closeShare" style="font-size:.8rem">取消</button></div>
   </div>
+</div>
+<!-- 右键快捷菜单 -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" id="ctxOpen">📖 打开详情</div>
+  <div class="ctx-item" id="ctxFav">❤️ 收藏</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctxShare">📤 分享</div>
+  <div class="ctx-item" id="ctxCopy">🔗 复制链接</div>
 </div>
 <script>
 (function(){
@@ -1402,9 +1448,165 @@ ${ratingHtml}
   document.getElementById('musicBtn').onclick=toggleMusic;
   if(localStorage.getItem(LS_MUSIC)==='1'){ musicOn=true; document.getElementById('musicBtn').textContent='🔔'; document.getElementById('musicBtn').classList.add('on'); }
 
+  // ── v2.5 增强功能 ──
+
+  // 节气主题检测
+  function getSeason(){
+    const m=new Date().getMonth()+1;
+    if(m>=3&&m<=5) return 'spring';
+    if(m>=6&&m<=8) return 'summer';
+    if(m>=9&&m<=11) return 'autumn';
+    return 'winter';
+  }
+  const season=getSeason();
+  document.documentElement.setAttribute('data-season',season);
+
+  // 首次访问淡入
+  const LS_VISIT='cr_visited';
+  if(!localStorage.getItem(LS_VISIT)){
+    document.querySelectorAll('.hdr,.ly,.mn').forEach((el,i)=>{
+      el.classList.add('fade-in'); el.style.animationDelay=(i*0.12)+'s';
+    });
+    localStorage.setItem(LS_VISIT,'1');
+  }
+
+  // 击磬声（每道菜独特音色）
+  let chimeAudioCtx=null;
+  function initChimeCtx(){ if(!chimeAudioCtx) chimeAudioCtx=new(window.AudioContext||window.webkitAudioContext)(); }
+  function playChime(recipeIdx){
+    initChimeCtx();
+    if(chimeAudioCtx.state==='suspended') chimeAudioCtx.resume();
+    const ctx=chimeAudioCtx;
+    const t=ctx.currentTime;
+    // 基于菜谱index生成独特音高（泛音列）
+    const baseFreq=440*Math.pow(1.05946,(recipeIdx%24));
+    const harmonics=[1,2.756,3.756,5.404,6.967,8.933];
+    harmonics.forEach((h,i)=>{
+      const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=baseFreq*h;
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(0,t+i*0.05);
+      g.gain.linearRampToValueAtTime(0.07/(i+1),t+i*0.05+0.03);
+      g.gain.exponentialRampToValueAtTime(0.001,t+i*0.05+2.2);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t+i*0.05); o.stop(t+i*0.05+2.3);
+    });
+  }
+
+  // 古诗词库（按朝代/类别关联）
+  const POEMS={
+    '先秦汉魏晋':{title:'《诗经·大雅》',text:'关关雎鸠，在河之洲。窈窕淑女，君子好逑。'},
+    '唐代':{title:'《悯农》',text:'锄禾日当午，汗滴禾下土。谁知盘中餐，粒粒皆辛苦。'},
+    '宋代':{title:'《食粥》',text:'世人个个学长年，不悟长年在目前。我得宛丘平易法，只得忧游太古前。'},
+    '元代':{title:'《墨梅》',text:'吾家洗砚池头树，个个花开淡墨痕。不要人夸好颜色，只留清气满乾坤。'},
+    '明代':{title:'《菜羹》',text:'青葱自古富甘脆，菜羹岁晚夸滋味。'},
+    '清代':{title:'《随园食单》',text:'学问之道，先知而后行，饮食亦然。'},
+    'default':{title:'《黄帝内经》',text:'五谷为养，五果为助，五畜为益，五菜为充。'}
+  };
+  function getPoem(era){
+    for(const k of Object.keys(POEMS)){ if(era.includes(k.replace('汉魏晋',''))) return POEMS[k]; }
+    return POEMS['default'];
+  }
+
+  // 宜忌（基于节气）
+  const YIJI={
+    spring:{yi:['宜疏肝','宜养阳','宜踏青'],ji:['忌辛辣','忌动怒']},
+    summer:{yi:['宜清心','宜补水','宜午睡'],ji:['忌燥热','忌贪凉']},
+    autumn:{yi:['宜润肺','宜收敛','宜平和'],ji:['忌辛散','忌忧悲']},
+    winter:{yi:['宜温补','宜藏精','宜静养'],ji:['忌发汗','忌熬夜']}
+  };
+  function getYiJi(){
+    const s=YIJI[season]||YIJI.spring;
+    return `<div class="yi-ji">
+      ${s.yi.map(y=>`<span class="yi-tag yi">${y}</span>`).join('')}
+      ${s.ji.map(j=>`<span class="ji-tag">${j}</span>`).join('')}
+    </div>`;
+  }
+
+  // 修改openM：添加淡入过渡+击磬+诗词+宜忌
+  const _origOpenM=openM;
+  openM=function(idx){
+    if(!mb.classList.contains('on')){
+      mb.classList.add('on'); document.body.style.overflow='hidden';
+    } else {
+      const md=document.getElementById('md');
+      md.classList.remove('transitioning'); void md.offsetWidth; md.classList.add('transitioning');
+    }
+    const prevIdx=mIdx; _origOpenM(idx);
+    // 击磬（仅当开启音乐时）
+    if(musicOn) playChime(filtered[idx]?.id?.split('').reduce((s,c)=>s+c.charCodeAt(0),0)||idx);
+    // 诗词+宜忌（在mdBd渲染后注入）
+    setTimeout(()=>{
+      const poem=getPoem(filtered[mIdx]?.era||'');
+      const yiJi=getYiJi();
+      const poemHtml=`<div class="poem"><div class="poem-title">${poem.title}</div><div class="poem-text">${poem.text}</div></div>`;
+      const existingPoem=document.querySelector('.poem');
+      if(existingPoem) existingPoem.remove();
+      const existingYiJi=document.querySelector('.yi-ji');
+      if(existingYiJi) existingYiJi.parentElement.remove();
+      const ratingWrap=document.getElementById('ratingStars')?.closest('.rating-wrap');
+      if(ratingWrap){
+        const wrapper=document.createElement('div');
+        wrapper.innerHTML=yiJi+poemHtml;
+        ratingWrap.parentNode.insertBefore(wrapper.firstChild,ratingWrap.nextSibling);
+      }
+    },50);
+  };
+
+  // 右键快捷菜单
+  let ctxTarget=null;
+  function showCtx(e,recipeId){
+    e.preventDefault();
+    const menu=document.getElementById('ctxMenu');
+    ctxTarget=recipeId;
+    menu.style.left=e.clientX+'px'; menu.style.top=e.clientY+'px';
+    menu.classList.add('on');
+    // 更新收藏文字
+    const isFav=FAVS.has(recipeId);
+    document.getElementById('ctxFav').textContent=isFav?'💔 取消收藏':'❤️ 收藏';
+  }
+  function hideCtx(){ document.getElementById('ctxMenu').classList.remove('on'); }
+  document.addEventListener('click',hideCtx);
+  document.getElementById('ctxOpen').onclick=()=>{
+    const ri=filtered.findIndex(x=>x.id===ctxTarget);
+    if(ri>=0){ openM(ri); hideCtx(); }
+  };
+  document.getElementById('ctxFav').onclick=()=>{
+    const ri=filtered.findIndex(x=>x.id===ctxTarget);
+    if(ri>=0){
+      toggleFav(ctxTarget);
+      const isFav=FAVS.has(ctxTarget);
+      document.getElementById('ctxFav').textContent=isFav?'💔 取消收藏':'❤️ 收藏';
+    }
+    hideCtx();
+  };
+  document.getElementById('ctxShare').onclick=()=>{
+    const d=filtered.find(x=>x.id===ctxTarget);
+    if(d){ openShare(d); hideCtx(); }
+  };
+  document.getElementById('ctxCopy').onclick=()=>{
+    const d=filtered.find(x=>x.id===ctxTarget);
+    if(d){ navigator.clipboard.writeText(location.origin+location.pathname+'?r='+d.id).then(()=>alert('链接已复制！')); }
+    hideCtx();
+  };
+  // 给card绑定右键
+  document.addEventListener('contextmenu',e=>{
+    const card=e.target.closest('.card');
+    if(card){ e.preventDefault(); showCtx(e,card.dataset.id); }
+  });
+  // 长按支持（移动端）
+  let longPressTimer=null;
+  document.addEventListener('touchstart',e=>{
+    const card=e.target.closest('.card');
+    if(card){
+      longPressTimer=setTimeout(()=>{ showCtx({clientX:e.touches[0].clientX,clientY:e.touches[0].clientY,preventDefault:()=>{}},card.dataset.id); },500);
+    }
+  });
+  document.addEventListener('touchend',()=>{ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } });
+  document.addEventListener('touchmove',()=>{ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } });
+
   // ── Init ──
   showSk();
-  fetch('./recipes_data.json')
+  fetch('https://raw.githubusercontent.com/lz2026km/ChineseRecipes500/main/recipes_data.json')
     .then(r=>{if(!r.ok) throw new Error('Failed to load'); return r.json();})
     .then(d=>{
       DATA=d;
