@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v1.4</title>
+  <title>中华美食千百道 v1.6</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -193,6 +193,36 @@
     .stp-prog{background:var(--bd);border-radius:10px;height:6px;overflow:hidden;margin-bottom:14px}
     .stp-bar{height:100%;background:linear-gradient(90deg,var(--c1),var(--c2));border-radius:10px;transition:width .3s}
     .md-share{display:flex;gap:8px;margin-bottom:16px}
+    .cuisine-panel{background:linear-gradient(135deg,#faf3eb,#f5ede0);border-radius:12px;padding:14px;margin-top:8px;border:1px solid #e8d5c4}
+    .cp-row{display:flex;gap:8px;margin-bottom:7px;font-size:.88rem;align-items:flex-start}
+    .cp-lbl{min-width:60px;color:var(--mt);font-weight:600;flex-shrink:0}
+    .cp-val{color:var(--tx)}
+    .cp-desc{font-size:.85rem;color:var(--tx);line-height:1.7;margin:10px 0;padding:10px;background:rgba(200,85,61,.05);border-radius:8px;border-left:3px solid var(--c1)}
+    .tech-tag{display:inline-block;background:linear-gradient(135deg,#c8553d,#e8a87c);color:#fff;font-size:.7rem;padding:2px 8px;border-radius:10px;margin:2px;cursor:pointer}
+    .rep-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+    .rep-item{background:var(--bg);border:1px solid var(--bd);border-radius:20px;padding:3px 10px;font-size:.78rem;color:var(--tx)}
+    .cp-rep{margin-top:8px}
+    .tech-panel{background:linear-gradient(135deg,#faf3eb,#f5ede0);border-radius:12px;padding:14px;margin-top:8px;border:1px solid #e8d5c4}
+    .tech-desc{font-size:.9rem;color:var(--tx);margin-bottom:10px;line-height:1.7}
+    .tech-tips{margin:0;padding-left:20px;font-size:.85rem;color:var(--tx);line-height:2}
+    /* 菜系百科面板 */
+    .cp-modal{position:fixed;inset:0;background:rgba(44,24,16,.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+    .cp-modal-in{background:var(--sf);border-radius:20px;max-width:800px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(44,24,16,.3)}
+    .cp-modal-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--bd);font-weight:700;font-size:1.1rem;position:sticky;top:0;background:var(--sf);border-radius:20px 20px 0 0}
+    .cp-modal-hd .md-x{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--mt);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .cp-modal-hd .md-x:hover{background:var(--bd)}
+    .cp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:20px}
+    .cp-card{background:var(--bg);border:1.5px solid var(--bd);border-radius:16px;padding:18px 14px;cursor:pointer;text-align:center;transition:all .2s}
+    .cp-card:hover{border-color:var(--c1);transform:translateY(-3px);box-shadow:0 6px 20px var(--sh)}
+    .cp-card-icon{font-size:2.2rem;margin-bottom:8px}
+    .cp-card-name{font-weight:700;font-size:.95rem;margin-bottom:4px}
+    .cp-card-origin{font-size:.75rem;color:var(--mt)}
+    .cp-card-flavor{font-size:.7rem;color:var(--c1);margin-top:4px}
+    .cp-detail{padding:20px}
+    .cp-detail-hd{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bd)}
+    .cp-back-btn{background:var(--bd);border:none;border-radius:20px;padding:6px 16px;font-size:.8rem;cursor:pointer;color:var(--tx);font-family:inherit}
+    .cp-detail-name{font-weight:700;font-size:1.1rem}
+    .cp-detail-body{padding:0 4px}
     .share-btn{flex:1;height:38px;border:1.5px solid var(--bd);background:var(--sf);border-radius:19px;font-size:.8rem;cursor:pointer;color:var(--tx);display:flex;align-items:center;justify-content:center;gap:6px;transition:all .12s;font-family:inherit}
     .share-btn:hover{border-color:var(--c1);color:var(--c1);background:rgba(200,85,61,.05)}
     .share-btn.copied{border-color:var(--c3);color:var(--c3);background:rgba(212,175,55,.08)}
@@ -316,6 +346,11 @@
       <span class="arr">▾</span>
     </button>
     <div class="flt-body" id="fltSrcBody"></div>
+    <!-- 菜系百科入口 -->
+    <button class="flt-hdr" id="fltCuisineHdr" onclick="openCuisinePanel()" style="background:linear-gradient(135deg,#faf3eb,#f5ede0);border-left:3px solid #c8553d">
+      <span class="flt-lbl">🏆 菜系百科</span>
+      <span class="arr">▾</span>
+    </button>
   </nav>
   <main class="mn" id="main">
     <!-- Active filter tags -->
@@ -645,7 +680,59 @@
     '清代':'#641e34',
     '近代·现代':'#c8553d',
   };
+  const CUISINE_ICONS={'鲁菜':'🦃','川菜':'🌶️','粤菜':'🦐','浙菜':'🐟','闽菜':'🦑','苏菜':'🦆','湘菜':'🔥','官府菜':'🏺'};
   const ERAS=['全部','先秦·汉·魏晋','唐代','元代','宋代','明代','清代','近代·现代'];
+
+  const CUISINE_DB={
+    '鲁菜':{alias:'齐鲁风味',origin:'山东济南/胶东',founding:'西周·齐桓公御厨',philosophy:'以盐提鲜，以汤养味，咸鲜为主，火候精到',techniques:['爆','炒','扒','蒸','汆','溜','拔丝','糖醋'],flavors:'咸鲜为主，鲜香脆嫩，汤汁浓稠', representative:['糖醋鲤鱼','九转大肠','葱烧海参','油爆双脆','德州扒鸡','坛子肉'], utensils:['炒锅','蒸笼','砂锅','铁锅'],desc:'鲁菜是八大菜系之首，西周时齐国管仲首倡"盐业专营"，齐桓公御厨创"八珍"技法。济南帮擅长爆炒，胶东帮擅长海鲜。清末康有为客居济南，创"清蒸葱椒"等新式鲁菜。鲁菜讲究"旺火速成"，爆菜最能体现刀工与火候的完美结合。'},
+    '川菜':{alias:'天府之国',origin:'四川成都/重庆',founding:'秦汉·蜀地盐业',philosophy:'一菜一格，百菜百味，麻辣为首，善用三椒',techniques:['炒','爆','溜','烩','炝','拌','卤','熏','腌','腊'],flavors:'麻辣/酸辣/红油/椒麻/怪味',representative:['麻婆豆腐','回锅肉','宫保鸡丁','水煮鱼','鱼香肉丝','樟茶鸭'],utensils:['炒锅','蒸笼','高压锅'],desc:'川菜源于古蜀国，秦汉时巴蜀人利用花椒茱萸调味。唐代诗人李白赞"锦城虽云乐"但更爱川菜。清代辣椒传入后，川菜形成"红油麻辣"体系。成都为上河帮（精致），重庆为下河帮（粗犷），自贡为小河帮（盐帮菜）。讲究"七滋八味"，以鱼香/怪味/红油/麻辣/酸辣著称。'},
+    '粤菜':{alias:'岭南食珍',origin:'广东广州/潮汕/客家',founding:'秦汉·南越国',philosophy:'原汁原味，清鲜嫩滑，季令而食，不时不食',techniques:['白灼','清蒸','油泡','炒','炸','煲仔','烤','卤','腌'],flavors:'清鲜/嫩滑/香醇/微甜',representative:['白切鸡','烤乳猪','清蒸石斑','叉烧','老火靓汤','砂锅粥','潮汕牛肉火锅'],utensils:['砂锅','蒸笼','瓦煲','烤炉'],desc:'粤菜源于南越国，秦汉时广州已是海港重镇。讲究"不时不食"——春天吃虾，秋日吃蟹。广州菜（广府菜）精细，潮州菜（潮汕菜）擅海鲜，客家菜（东江菜）重油盐。常用调料不过百种，但每道菜力求保留食材本味。'},
+    '浙菜':{alias:'江南清嘉',origin:'浙江杭州/宁波/绍兴',founding:'南宋·建都临安',philosophy:'清鲜嫩滑，注重原味，咸甜适中，南料京烹',techniques:['蒸','炖','烩','汆','炒','炸','糖醋','糟醉'],flavors:'清鲜/微甜/微咸/醇厚',representative:['东坡肉','西湖醋鱼','龙井虾仁','叫化鸡','宋嫂鱼羹','宁波汤团','绍兴黄酒'],utensils:['蒸笼','砂锅','炖盅','酒坛'],desc:'浙菜源于南宋建都临安（杭州），宋嫂鱼羹传为宋高宗亲赐。东坡肉源于苏东坡任杭州太守时率民筑堤，百姓以猪肉犒劳。浙江山多海阔，食材丰富，宁波擅海鲜，绍兴擅黄酒入馔。''},
+    '闽菜':{alias:'山海之间',origin:'福建福州/厦门/泉州',founding:'唐宋·海上丝路',philosophy:'鲜嫩香醇，偏于甜酸，讲究汤汁，技法独特',techniques:['溜','蒸','炒','爆','氽','炖','糟','醉','炝'],flavors:'甜/酸/香/鲜',representative:['佛跳墙','鸡汤汆海蚌','淡糟香螺片','荔枝肉','闽南菜脯蛋','沙茶面','土笋冻'],utensils:['炖盅','酒坛','蒸笼','砂锅'],desc:'闽菜源于福州八闽古都，得益于海上丝路带来的香料。唐代闽人将酿果wine入菜，宋代闽菜形成"甜酸"特色。佛跳墙始于清道光年间福州官绅宴席，以十八种原料隔水炖制，香飘四座。厦门、泉州受南洋影响，沙茶、咖喱融入闽菜。'},
+    '苏菜':{alias:'金陵风味',origin:'江苏南京/苏州/扬州',founding:'春秋·吴国',philosophy:'清淡适口，甜而不腻，注重本味，讲究火工',techniques:['炖','焖','蒸','炒','烧','煮','烩','糟'],flavors:'清淡/微甜/原汁原味',representative:['松鼠桂鱼','盐水鸭','蟹粉狮子头','大煮干丝','扬州炒饭','桂花糖藕','叫化鸡'],utensils:['砂锅','炖盅','蒸笼','砖灶'],desc:'苏菜源于春秋吴国宫馔，明代《本草纲目》作者李时珍为江苏人，讲究医食同源。南京菜以鸭馔见长（盐水鸭/板鸭/烤鸭），苏州菜偏甜（松鼠桂鱼/樱桃肉），扬州菜精致（大煮干丝/文思豆腐）。'},
+    '湘菜':{alias:'洞庭鱼米',origin:'湖南长沙/衡阳/岳阳',founding:'汉代·楚文化',philosophy:'酸辣为主，滋味浓郁，技法多样，选料认真',techniques:['蒸','炒','炸','溜','炝','熏','腊','腌'],flavors:'酸辣/香辣/油重/色深',representative:['剁椒鱼头','毛氏红烧肉','腊味合蒸','组庵豆腐','东安子鸡','永州血鸭'],utensils:['炒锅','蒸笼','熏房','瓦罐'],desc:'湘菜源于楚国，屈原作《楚辞》常及饮食。汉代长沙国擅烹饪，唐代湘菜进入宫廷。毛泽东好辣，子姜/豆豉/腊味为湘菜灵魂。长沙为湘江流域菜，衡阳为蒸菜发源地，岳阳擅水产。'},
+    '官府菜':{alias:'翰林风雅',origin:'北京宫廷/翰林院/王公府邸',founding:'清代·康乾盛世',philosophy:'选料精，做工细，讲究意境，色香味形器俱全',techniques:['蒸','炖','焖','扒','炒','爆','瓤','酿'],flavors:'咸鲜/清淡/醇厚',representative:['满汉全席','翰林席','谭家菜','段家菜','孔府菜','白燕熊掌'],utensils:['炖盅','蒸笼','玉泉山泉水','官窑瓷'],desc:'官府菜源于清代翰林院编修宴席，康有为/谭延闿等皆为美食家。翰林席为文官雅集之馔，讲究诗情画意。谭家菜为清末官僚谭宗浚所创，以海味干货著称。孔府菜源于曲阜孔府，以"食不言"古礼著称。'}}
+  ;
+  const TECH_DB={
+    '炒':{desc:'猛火快翻，锁住食材水分，使之外焦里嫩',tips:['热锅凉油','大火快翻','断生即出']},
+    '爆':{desc:'极高油温（200C以上），食材下锅发出"爆"响，需时极短',tips:['油温要够','食材事先码味上浆','动作要快']},
+    '蒸':{desc:'蒸汽对流加热，保持食材原汁原味，营养不流失',tips:['水要宽','火要旺','原料要新鲜']},
+    '炖':{desc:'中小火长时间加热，使调料滋味渗入食材',tips:['冷水下料','大火烧开','小火慢炖']},
+    '煮':{desc:'水为传热媒介，简单朴素，保持食材本味',tips:['水量要宽','加盐不宜过早','出锅前再调味']},
+    '汆':{desc:'沸水中快速焯烫，数秒即成，常用于蔬菜和肉片',tips:['水要滚开','时间要短','即烫即捞']},
+    '溜':{desc:'食材先炸或煮熟，再裹芡汁，使外层光亮滑嫩',tips:['掌握好油温','芡汁浓稀适度','快速裹匀']},
+    '烩':{desc:'多种食材同时烹制，混合入味，汤汁较宽',tips:['按成熟先后下料','汤汁勾芡','一锅成菜']},
+    '扒':{desc:'食材码放整齐，以汤汁慢火烹入，勾芡收汁',tips:['码放要整齐','汤汁要清亮','勾芡要薄']},
+    '熘':{desc:'食材挂糊或上浆，以油或水加热，再浇汁',tips:['糊浆要均匀','掌握油温','即溜即食']},
+    '炸':{desc:'大量油脂加热至高温，食材下锅炸至金黄酥脆',tips:['油温180C左右','复炸更酥脆','沥干油分']},
+    '煎':{desc:'少量油润锅，以中小火将食材煎至两面金黄',tips:['热锅凉油','中小火','耐心等待']},
+    '熏':{desc:'以茶叶/糖/木屑等烟熏食材，赋予独特烟香',tips:['控制烟量','时间不宜过长','注意通风']},
+    '腊':{desc:'以盐腌制后风干或烟熏，延长保存期',tips:['盐量要足','通风阴干','避免受潮']},
+    '腌':{desc:'以盐/酱/糖/酒等调料浸渍食材，使其入味',tips:['调料比例适当','冷藏保存','时间足够']},
+    '醉':{desc:'以酒为重要调料，浸泡或拌制食材',tips:['选好酒','密封保存','时间要够']},
+    '糟':{desc:'以香糟（酒糟）入菜，赋予独特糟香',tips:['香糟要新鲜','用量要适度','热菜冷菜皆宜']},
+    '酱':{desc:'以酱料（黄酱/甜面酱等）为主要调味',tips:['酱要炒香','火候要控制','搭配葱姜蒜']},
+    '卤':{desc:'以卤水汁长期浸煮食材，使其充分入味',tips:['卤水要老','文火慢卤','越卤越香']},
+    '烤':{desc:'以火的热辐射加热食材，赋予焦香',tips:['控制温度','翻转均匀','注意火候']},
+    '白灼':{desc:'以沸水快速烫熟食材，蘸酱料食用',tips:['水要滚开','时间极短','即烫即捞']},
+    '油泡':{desc:'大量热油泡浸食材，使其嫩滑',tips:['油温控制在150C','短时间浸炸','配以酱汁']},
+    '糖醋':{desc:'以糖醋汁为主要调味，酸甜可口',tips:['糖醋比例1:1','先炸后裹汁','快速翻炒']},
+    '红烧':{desc:'以酱油/糖色炒色，加水焖烧，收汁红亮',tips:['炒糖色要适度','大火烧开','小火慢焖']},
+    '干烧':{desc:'少汤汁，以小火慢烧至干香',tips:['火要小','不断翻动','收干为止']},
+    '拔丝':{desc:'糖浆熬至拔出丝状，裹在食材外层',tips:['糖浆熬到拔丝状态','动作要快','立即上桌']},
+    '火煽':{desc:'锅底少油，以手勺不停翻动食材至成熟',tips:['锅要热','不断翻炒','动作轻柔']},
+    '炝':{desc:'花椒/干辣椒等爆香后下食材快炒',tips:['香料要爆香','动作要快','即成即食']},
+    '拌':{desc:'生或熟的食材切配后，以调料拌匀',tips:['刀工要均匀','趁热或凉透拌制','即拌即食']},
+    '瓤':{desc:'在主料内腔酿入馅料，蒸或煮制',tips:['馅料要调制好','填入要饱满','掌握火候']},
+    '酿':{desc:'将馅料填入或覆盖在主料上烹制',tips:['选好主料','馅料要鲜美','火候适度']},
+    '煨':{desc:'以微火长时间焖煮，汤汁浓稠',tips:['小火慢煨','保持微沸','加盖密封']},
+    '焖':{desc:'加盖以中小火焖煮，介于烧与炖之间',tips:['时间较长','中途不宜揭盖','收汁再揭盖']},
+    '煲':{desc:'以砂锅为容器，小火慢煮，汤浓味厚',tips:['砂锅要预热','文火慢煲','勿中途加水']},
+    '汆':{desc:'沸水中快速一烫即捞，保持脆嫩',tips:['水要滚开','时间极短','即捞即食']},
+    '灼':{desc:'特指白灼，以沸水快速烫熟',tips:['水要滚','原料要薄','时间极短']},
+    '烙':{desc:'以铁板或铛加热食材至熟',tips:['火力均匀','加盖烙制','中途翻转']},
+    '冻':{desc:'加热后冷却凝结成冻，如肉皮冻',tips:['胶原要足','冷藏凝结','即食风味佳']}
+  };
 
   // 热词
   const HOT_WORDS=['佛跳墙','东坡肉','北京烤鸭','麻婆豆腐','清蒸鲈鱼','糖醋里脊','宫保鸡丁','鱼香肉丝','红烧肉','小笼包'];
@@ -736,6 +823,64 @@
     if(on) selCats.push(cat); else selCats=selCats.filter(c=>c!==cat);
     updateFilterCount('cat');
     apply();
+  }
+
+  // ── 菜系百科面板 ──
+  let cuisinePanelOpen=false;
+  function openCuisinePanel(){
+    if(!cuisinePanelOpen){
+      showCuisinePanel();
+      cuisinePanelOpen=true;
+    }else{
+      closeCuisinePanel();
+      cuisinePanelOpen=false;
+    }
+  }
+  function showCuisinePanel(){
+    let html='<div class="cp-modal" id="cpModal"><div class="cp-modal-in">';
+    html+='<div class="cp-modal-hd"><span>🏆 菜系百科总览</span><button class="md-x" onclick="closeCuisinePanel()">✕</button></div>';
+    html+='<div class="cp-grid">';
+    const keys=Object.keys(CUISINE_DB);
+    keys.forEach(k=>{
+      const c=CUISINE_DB[k];
+      html+=`<div class="cp-card" onclick="showCuisineDetail('${k}')">
+        <div class="cp-card-icon">${CUISINE_ICONS[k]||'🍽️'}</div>
+        <div class="cp-card-name">${k}</div>
+        <div class="cp-card-origin">${c.origin||''}</div>
+        <div class="cp-card-flavor">${c.flavors||''}</div>
+      </div>`;
+    });
+    html+='</div></div></div>';
+    const existing=document.getElementById('cpModal');
+    if(existing) existing.remove();
+    document.body.insertAdjacentHTML('beforeend',html);
+  }
+  function showCuisineDetail(name){
+    const c=CUISINE_DB[name];
+    if(!c) return;
+    const techList=c.techniques.map(t=>`<span class="tech-tag">${t}</span>`).join('');
+    let html=`<div class="cp-detail" id="cpDetail">
+      <div class="cp-detail-hd">
+        <button class="cp-back-btn" onclick="showCuisinePanel()">← 返回</button>
+        <span class="cp-detail-name">🏆 ${name}</span>
+      </div>
+      <div class="cp-detail-body">
+        <div class="cp-row"><span class="cp-lbl">🏷️ 别名</span><span class="cp-val">${c.alias||'-'}</span></div>
+        <div class="cp-row"><span class="cp-lbl">📍 发源地</span><span class="cp-val">${c.origin||'-'}</span></div>
+        <div class="cp-row"><span class="cp-lbl">📜 起源</span><span class="cp-val">${c.founding||'-'}</span></div>
+        <div class="cp-row"><span class="cp-lbl">🍽️ 口味</span><span class="cp-val">${c.flavors||'-'}</span></div>
+        <div class="cp-row"><span class="cp-lbl">🔥 技法</span><span class="cp-val">${techList}</span></div>
+        <div class="cp-desc">${c.desc||''}</div>
+        <div class="cp-rep"><span class="cp-lbl">📌 代表菜</span><div class="rep-list">${c.representative.map(n=>`<span class="rep-item">${n}</span>`).join('')}</div></div>
+      </div>
+    </div>`;
+    const modal=document.getElementById('cpModal');
+    const inner=modal?.querySelector('.cp-modal-in');
+    if(inner) inner.innerHTML=html;
+  }
+  function closeCuisinePanel(){
+    const m=document.getElementById('cpModal');
+    if(m){ m.remove(); cuisinePanelOpen=false; }
   }
 
   // ── Build search/keyword filter ──
@@ -1002,6 +1147,33 @@
     }
     if(d.tips) bd+=`<div class="md-sc"><div class="md-sb">烹饪要点</div><p class="md-tx sm">💡 ${stripMd(d.tips)}</p></div>`;
     if(d.sourceText) bd+=`<div class="md-sc"><div class="md-sb">📜 古籍原文</div><p class="md-tx sm md-src">"${stripMd(d.sourceText)}"</p></div>`;
+    // 菜系百科
+    const cuisineKey=d.cuisine||'';
+    if(cuisineKey && CUISINE_DB[cuisineKey]){
+      const cb=CUISINE_DB[cuisineKey];
+      const techList=cb.techniques.map(t=>`<span class="tech-tag" data-tech="${t}">${t}</span>`).join('');
+      bd+=`<div class="md-sc"><div class="md-sb">🏆 菜系百科 · ${cuisineKey}</div>
+        <div class="cuisine-panel">
+          <div class="cp-row"><span class="cp-lbl">🏷️ 别名</span><span class="cp-val">${cb.alias||'-'}</span></div>
+          <div class="cp-row"><span class="cp-lbl">📍 发源地</span><span class="cp-val">${cb.origin||'-'}</span></div>
+          <div class="cp-row"><span class="cp-lbl">📜 起源</span><span class="cp-val">${cb.founding||'-'}</span></div>
+          <div class="cp-row"><span class="cp-lbl">🍽️ 口味</span><span class="cp-val">${cb.flavors||'-'}</span></div>
+          <div class="cp-row"><span class="cp-lbl">🔥 技法</span><span class="cp-val">${techList}</span></div>
+          <div class="cp-desc">${cb.desc||''}</div>
+          <div class="cp-rep"><span class="cp-lbl">📌 代表菜</span><div class="rep-list">${cb.representative.map(n=>`<span class="rep-item">${n}</span>`).join('')}</div></div>
+        </div></div>`;
+    }
+    // 技法详解
+    const mainHeat=d.heat||'';
+    if(mainHeat && TECH_DB[mainHeat]){
+      const tc=TECH_DB[mainHeat];
+      const tipList=tc.tips.map(t=>`<li>${t}</li>`).join('');
+      bd+=`<div class="md-sc"><div class="md-sb">🔪 技法详解 · ${mainHeat}</div>
+        <div class="tech-panel">
+          <p class="tech-desc">${tc.desc}</p>
+          <ul class="tech-tips">${tipList}</ul>
+        </div></div>`;
+    }
     // Related recipes
     const rels=DATA.filter(x=>x.id!==d.id&&(x.category===d.category||x.era===d.era)).slice(0,3);
     if(rels.length){
