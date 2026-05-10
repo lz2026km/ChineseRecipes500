@@ -1545,16 +1545,18 @@ ${ratingHtml}
 
   // 修改openM：添加淡入过渡+击磬+诗词+宜忌
   const _origOpenM=openM;
-  openM=function(idx){
+  openM=function(id){
+    const realIdx=filtered.findIndex(d=>d.id===id);
+    if(realIdx<0) return;
     if(!mb.classList.contains('on')){
       mb.classList.add('on'); document.body.style.overflow='hidden';
     } else {
       const md=document.getElementById('md');
       md.classList.remove('transitioning'); void md.offsetWidth; md.classList.add('transitioning');
     }
-    const prevIdx=mIdx; _origOpenM(idx);
+    const prevIdx=mIdx; _origOpenM(realIdx);
     // 击磬（仅当开启音乐时）
-    if(musicOn) playChime(filtered[idx]?.id?.split('').reduce((s,c)=>s+c.charCodeAt(0),0)||idx);
+    if(musicOn) playChime(id?.toString().split('').reduce((s,c)=>s+c.charCodeAt(0),0)||id);
     // 诗词+宜忌（在mdBd渲染后注入）
     setTimeout(()=>{
       const poem=getPoem(filtered[mIdx]?.era||'');
