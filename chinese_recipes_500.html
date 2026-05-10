@@ -1554,7 +1554,7 @@ ${ratingHtml}
       const md=document.getElementById('md');
       md.classList.remove('transitioning'); void md.offsetWidth; md.classList.add('transitioning');
     }
-    const prevIdx=mIdx; _origOpenM(realIdx);
+    const prevIdx=mIdx; _origOpenM(id);
     // 击磬（仅当开启音乐时）
     if(musicOn) playChime(id?.toString().split('').reduce((s,c)=>s+c.charCodeAt(0),0)||id);
     // 诗词+宜忌（在mdBd渲染后注入）
@@ -1632,7 +1632,7 @@ ${ratingHtml}
   // 本地开发用 ./recipes_data.json，生产环境用 raw.githubusercontent.com（绕过 GitHub Pages CDN 500KB 限制）
   const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
     ? './recipes_data.json'
-    : 'https://raw.githubusercontent.com/lz2026km/ChineseRecipes500/main/recipes_data.json';
+    : './recipes_data.json';
   fetch(DATA_URL)
     .then(r=>{if(!r.ok) throw new Error('Failed to load'); return r.json();})
     .then(d=>{
