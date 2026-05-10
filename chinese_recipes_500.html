@@ -1203,17 +1203,17 @@ ${ratingHtml}
   <span class="md-tg md-dif">${stars}</span>
 </div>`;
     if(d.history) bd+=`<div class="md-sc"><div class="md-sb">历史背景</div><p class="md-tx">${highlightHistory(d.history)}</p></div>`;
-    if(d.authorBio) bd+=`<div class="md-sc"><div class="md-sb">作者简介</div><p class="md-tx sm">${stripMd(d.authorBio)}</p></div>`;
-    if(d.ingredients) bd+=`<div class="md-sc"><div class="md-sb">食材·用量</div><p class="md-tx">${stripMd(d.ingredients)}</p></div>`;
+    if(d.authorBio) bd+=`<div class="md-sc"><div class="md-sb">作者简介</div><p class="md-tx sm">${stripMd(Array.isArray(d.authorBio)?d.authorBio.join(''):d.authorBio||'')}</p></div>`;
+    if(d.ingredients) bd+=`<div class="md-sc"><div class="md-sb">食材·用量</div><p class="md-tx">${Array.isArray(d.ingredients)?d.ingredients.join('\n'):stripMd(d.ingredients||'')}</p></div>`;
     if(d.steps){
-      const stps=d.steps.split('\n').filter(s=>s.trim());
+      const stps=(Array.isArray(d.steps)?d.steps:d.steps.split('\n')).filter(s=>s.trim());
       const stpHtml=stps.map((s,i)=>`<div class="stp"><span class="sn">${i+1}</span><span class="md-tx" style="font-size:1rem">${s.replace(/^\d+\.\s*/,'')}</span></div>`).join('');
       bd+=`<div class="md-sc"><div class="stp-hdr"><span class="md-sb" style="border:none;padding:0;font-size:.85rem">详细步骤</span><span style="font-size:.75rem;color:var(--mt)">第${mIdx+1}步/共${stps.length}步</span></div>
         <div class="stp-prog"><div class="stp-bar" style="width:${Math.round(100/stps.length*1)}%"></div></div>
         ${stpHtml}`;
     }
-    if(d.tips) bd+=`<div class="md-sc"><div class="md-sb">烹饪要点</div><p class="md-tx sm">💡 ${stripMd(d.tips)}</p></div>`;
-    if(d.sourceText) bd+=`<div class="md-sc"><div class="md-sb">📜 古籍原文</div><p class="md-tx sm md-src">"${stripMd(d.sourceText)}"</p></div>`;
+    if(d.tips) bd+=`<div class="md-sc"><div class="md-sb">烹饪要点</div><p class="md-tx sm">💡 ${stripMd(Array.isArray(d.tips)?d.tips.join(''):d.tips||'')}</p></div>`;
+    if(d.sourceText) bd+=`<div class="md-sc"><div class="md-sb">📜 古籍原文</div><p class="md-tx sm md-src">"${stripMd(Array.isArray(d.sourceText)?d.sourceText.join(''):d.sourceText||'')}"</p></div>`;
     // Related recipes
     const rels=DATA.filter(x=>x.id!==d.id&&(x.category===d.category||x.era===d.era)).slice(0,3);
     if(rels.length){
