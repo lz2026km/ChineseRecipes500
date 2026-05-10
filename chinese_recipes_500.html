@@ -1179,7 +1179,7 @@
     const srcHtml=srcLabel?`<span class="md-by">📖 ${srcLabel}</span>`:'';
     document.getElementById('mdH').innerHTML=ph2+`<span class="md-bdg">${d.era}</span>${srcHtml}`;
     const stars=Array(d.difficulty||1).fill('★').join('');
-    const effHtml=(d.effects&&d.effects.length)?`<div class="md-tag-effects">${d.effects.map(e=>`<span class="eff-tag">💊 ${e}</span>`).join('')}</div>`:'';
+    const effHtml=(d.effects&&d.effects.length)?`<div class="md-tag-effects">${(Array.isArray(d.effects)?d.effects:d.effects.split('、')).map(e=>`<span class="eff-tag">💊 ${e}</span>`).join('')}</div>`:'';
     const myRate=RATINGS[d.id]||0;
     const allRates=Object.values(RATINGS);
     const avgRate=allRates.length ? (allRates.reduce((s,v)=>s+v,0)/allRates.length).toFixed(1) : null;
