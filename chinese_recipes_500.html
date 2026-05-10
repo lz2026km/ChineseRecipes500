@@ -1092,10 +1092,7 @@
   function showDly(d){
     document.getElementById('dlyTxt').textContent = `「${d.name}」— ${cleanSource(d.source)||'中华美食'}`;
     document.getElementById('dlyRhs').textContent = d.era;
-    document.getElementById('dly').onclick = ()=>{
-      const fi = DATA.findIndex(x=>x.id===d.id);
-      if(fi>=0) openM(fi);
-    };
+    document.getElementById('dly').onclick = ()=>{ openM(d.id); };
   }
 
   // ── View ──
@@ -1164,14 +1161,16 @@
     c.innerHTML=`<span class="fav">${isFaved(d.id)?'❤️':'🤍'}</span>
       <div class="ci">${img}<span class="ci-tg">${eraShort}</span><span class="era-tag" style="background:${eraColor}">${d.era}</span><span class="ci-hv">查看详情</span></div>
       <div class="cb"><div class="cn">${d.name}</div><div class="cs">${cleanSource(d.source)||'来源待考'}</div><div class="cta">${(d.category.split(' ')[0])+' '+(d.category.split(' ')[1]||'')}</div></div>`;
-    c.onclick=()=>openM(i);
-    c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openM(i);}};
+    c.onclick=()=>openM(d.id);
+    c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openM(d.id);}};
     return c;
   }
 
   // ── Modal ──
-  function openM(i){
-    mIdx=i; const d=filtered[i];
+  function openM(id){
+    const realIdx = filtered.findIndex(d => d.id === id);
+    if (realIdx < 0) return;
+    mIdx = realIdx; const d = filtered[mIdx];
     document.getElementById('mdId').textContent=`#${d.id} ${d.name}`;
     updateMdFavBtn(d.id);
     const icon=CAT_ICONS[d.category]||'🍽️';
@@ -1236,7 +1235,7 @@ ${ratingHtml}
     </div>`;
     document.getElementById('mdBd').innerHTML=bd;
     document.querySelectorAll('.rel-cr').forEach(rc=>{
-      rc.onclick=()=>{ const rid=rc.dataset.rel; const ri=filtered.findIndex(x=>x.id===rid); if(ri>=0) openM(ri); else { curQ=''; document.getElementById('srch').value=''; filtered=[...DATA]; const fi=DATA.findIndex(x=>x.id===rid); if(fi>=0) openM(fi); } };
+      rc.onclick=()=>{ const rid=rc.dataset.rel; const ri=filtered.findIndex(x=>x.id==rid); if(ri>=0) openM(filtered[ri].id); else { curQ=''; document.getElementById('srch').value=''; filtered=[...DATA]; const fi=DATA.findIndex(x=>x.id==rid); if(fi>=0) openM(DATA[fi].id); } };
     });
     document.getElementById('shareBtn').onclick=()=>openShare(d);
     document.getElementById('copyLinkBtn').onclick=()=>{ navigator.clipboard.writeText(location.origin+location.pathname+'?r='+d.id).then(()=>{alert('链接已复制！');}); };
@@ -1286,7 +1285,7 @@ ${ratingHtml}
   // ── URL param for deep link ──
   function checkUrlParam(){
     const p=new URLSearchParams(location.search).get('r');
-    if(p&&DATA.length){ const i=DATA.findIndex(d=>d.id===p); if(i>=0){ setTimeout(()=>openM(i),300); } }
+    if(p&&DATA.length){ const i=DATA.findIndex(d=>d.id===p); if(i>=0){ setTimeout(()=>openM(DATA[i].id),300); } }
   }
 
   // ── Event listeners ──
@@ -1298,18 +1297,18 @@ ${ratingHtml}
     addHist(curQ);
     apply();
   });
-  document.getElementById('rnd').onclick=()=>{ if(filtered.length){ const ri=Math.floor(Math.random()*filtered.length); openM(ri); } };
+  document.getElementById('rnd').onclick=()=>{ if(filtered.length){ const ri=Math.floor(Math.random()*filtered.length); openM(filtered[ri].id); } };
   document.getElementById('mdX').onclick=closeM;
   mb.addEventListener('click',e=>{ if(e.target===mb) closeM(); });
-  document.getElementById('mdPrev').addEventListener('click',()=>{ if(mIdx>0) openM(mIdx-1); });
-  document.getElementById('mdNext').addEventListener('click',()=>{ if(mIdx<filtered.length-1) openM(mIdx+1); });
+  document.getElementById('mdPrev').addEventListener('click',()=>{ if(mIdx>0) openM(filtered[mIdx-1].id); });
+  document.getElementById('mdNext').addEventListener('click',()=>{ if(mIdx<filtered.length-1) openM(filtered[mIdx+1].id); });
   document.getElementById('favBtn').onclick=()=>setView('favs');
   document.getElementById('hdrTl').onclick=()=>{ clearAll(); setView('main'); apply(); };
   document.addEventListener('keydown',e=>{
     if(!mb.classList.contains('on')) return;
     if(e.key==='Escape') closeM();
-    if(e.key==='ArrowLeft'){if(mIdx>0) openM(mIdx-1);}
-    if(e.key==='ArrowRight'){if(mIdx<filtered.length-1) openM(mIdx+1);}
+    if(e.key==='ArrowLeft'){if(mIdx>0) openM(filtered[mIdx-1].id);}
+    if(e.key==='ArrowRight'){if(mIdx<filtered.length-1) openM(filtered[mIdx+1].id);}
   });
 
   // ── Background Music Engine (v2.1) ──
@@ -1590,7 +1589,7 @@ ${ratingHtml}
   document.addEventListener('click',hideCtx);
   document.getElementById('ctxOpen').onclick=()=>{
     const ri=filtered.findIndex(x=>x.id===ctxTarget);
-    if(ri>=0){ openM(ri); hideCtx(); }
+    if(ri>=0){ openM(filtered[ri].id); hideCtx(); }
   };
   document.getElementById('ctxFav').onclick=()=>{
     const ri=filtered.findIndex(x=>x.id===ctxTarget);
