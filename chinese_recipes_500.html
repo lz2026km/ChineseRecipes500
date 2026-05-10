@@ -334,6 +334,8 @@
 <div class="qbar" id="qbar">
   <span class="qbar-lbl">👑 朝代</span>
   <div class="qbar-eras" id="qbarEras"></div>
+  <span class="qbar-lbl" style="margin-left:8px">🌏 藩属</span>
+  <div class="qbar-eras" id="qbarVassals" style="display:inline-flex;gap:6px;flex-wrap:wrap"></div>
   <span class="qbar-lbl" style="margin-left:8px">🍖 食材</span>
   <div class="qbar-types" id="qbarTypes"></div>
   <span class="qbar-lbl" style="margin-left:8px">🏆 菜系</span>
@@ -569,6 +571,26 @@
         const on=selEras.includes(era);
         if(on){ selEras=selEras.filter(e=>e!==era); if(!selEras.length) selEras=['全部']; }
         else { selEras=selEras.filter(e=>e!=='全部'); selEras.push(era); }
+        buildQuickBar(); apply();
+      };
+    });
+
+    // Vassal cuisine quick chips (藩属国)
+    const VASSALS = [{name:'日本料理',icon:'🇯🇵',color:'#E53935'},{name:'朝鲜菜',icon:'🇰🇵',color:'#1E88E5'},{name:'越南菜',icon:'🇻🇳',color:'#FDD835'},{name:'琉球菜',icon:'🇸🇦',color:'#43A047'}];
+    const vassalCnt = {};
+    DATA.forEach(d=>{ const c=d.cuisine||''; if(VASSALS.some(v=>v.name===c)) vassalCnt[c]=(vassalCnt[c]||0)+1; });
+    const qv = document.getElementById('qbarVassals');
+    qv.innerHTML = VASSALS.map(v=>{
+      const c=vassalCnt[v.name]||0;
+      const on=selCuisines.includes(v.name);
+      return `<button class="qchip${on?' on':''}" data-cuisine="${v.name}" style="${on?`background:${v.color};border-color:${v.color}`:`border-color:${v.color}`}">${v.icon} ${v.name}<span class="qnum">${c}</span></button>`;
+    }).join('');
+    qv.querySelectorAll('.qchip').forEach(b=>{
+      b.onclick = ()=>{
+        const cuisine=b.dataset.cuisine;
+        const on=selCuisines.includes(cuisine);
+        if(on) selCuisines=selCuisines.filter(c=>c!==cuisine);
+        else selCuisines.push(cuisine);
         buildQuickBar(); apply();
       };
     });
