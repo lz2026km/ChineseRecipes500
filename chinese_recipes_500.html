@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v3.4</title>
+  <title>中华美食千百道 v3.5</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -154,6 +154,9 @@
     .card::after{content:'';position:absolute;inset:0;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(139,115,85,.15);pointer-events:none}
     .card:hover{transform:translateY(-4px);box-shadow:0 8px 24px var(--sh)}
     .card:focus-visible{outline:3px solid var(--season-accent,var(--c3));outline-offset:2px}
+    /* ── 虚拟滚动 ── */
+    .grdV{position:relative}
+    .cardV{position:absolute;left:0;right:0;box-sizing:border-box}
     .card .fav{position:absolute;top:8px;right:8px;font-size:1.1rem;z-index:2;opacity:0;transition:opacity .15s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
     .card:hover .fav,.card.faved .fav{opacity:1}
     .card.faved .fav{opacity:1}
@@ -165,6 +168,46 @@
     .era-tag{position:absolute;bottom:6px;left:6px;font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:8px;color:#fff;opacity:.85;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .ci-hv{position:absolute;bottom:8px;right:8px;background:var(--c1);color:#fff;font-size:.65rem;padding:3px 9px;border-radius:8px;display:none}
     .card:hover .ci-hv{display:block}
+    /* ── 随机推荐轮播 ── */
+    .carousel-wrap{padding:8px 0 20px;position:relative}
+    .carousel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .carousel-tl{font-size:.875rem;font-weight:700;color:var(--mt)}
+    .carousel-ctrl{display:flex;gap:6px}
+    .carousel-btn{width:28px;height:28px;border:1.5px solid var(--bd);background:var(--sf);border-radius:50%;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;color:var(--tx)}
+    .carousel-btn:hover{border-color:var(--c1);color:var(--c1)}
+    .carousel-btn.paused{background:var(--c1);color:#fff;border-color:var(--c1)}
+    .carousel-track{display:flex;gap:14px;overflow:hidden;transition:transform .4s ease}
+    .carousel-card{flex-shrink:0;width:180px;background:var(--sf);border-radius:12px;box-shadow:0 2px 10px var(--sh);overflow:hidden;cursor:pointer;border:1px solid var(--bd);transition:transform .2s,box-shadow .2s}
+    .carousel-card:hover{transform:translateY(-3px);box-shadow:0 6px 18px var(--sh)}
+    .carousel-ci{position:relative;width:100%;height:100px;background:var(--bg)}
+    .carousel-ci img{width:100%;height:100%;object-fit:cover}
+    .carousel-ci-ph{display:flex;align-items:center;justify-content:center;font-size:2.5rem;height:100px;background:linear-gradient(135deg,#f5e6d3,#e8d5c4)}
+    .carousel-cb{padding:8px 10px}
+    .carousel-cn{font-size:.8rem;font-weight:700;font-family:"Songti SC",SimSun,serif;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .carousel-cs{font-size:.7rem;color:var(--mt);display:flex;align-items:center;gap:4px}
+    .carousel-dot{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:4px}
+    .carousel-dot span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;transition:background .2s}
+    .carousel-dot span.on{background:#fff}
+    /* ── 时令推荐区域 ── */
+    .seasonal-hdr{display:flex;align-items:center;gap:6px;padding:8px 10px;background:linear-gradient(90deg,rgba(200,85,61,.08),rgba(212,175,55,.08));border-radius:8px;margin-bottom:8px;border:1px solid rgba(200,85,61,.15)}
+    .seasonal-icon{font-size:1rem}
+    .seasonal-tl{font-size:.78rem;font-weight:700;color:var(--c1)}
+    .seasonal-sub{font-size:.65rem;color:var(--mt);margin-left:auto}
+    .seasonal-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background .1s;font-size:.78rem}
+    .seasonal-item:hover{background:var(--bg)}
+    .seasonal-item.hot{background:rgba(200,85,61,.1);border:1px solid rgba(200,85,61,.2)}
+    .seasonal-dot{width:6px;height:6px;border-radius:50%;background:var(--c1);flex-shrink:0}
+    /* ── 食材计算器 ── */
+    .calc-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:10px;margin-bottom:10px}
+    .calc-lbl{font-size:.8rem;color:var(--mt);white-space:nowrap}
+    .calc-input{width:60px;height:32px;padding:0 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:.875rem;text-align:center;background:var(--sf);color:var(--tx);outline:none}
+    .calc-input:focus{border-color:var(--c1)}
+    .calc-unit{font-size:.8rem;color:var(--mt)}
+    .calc-note{font-size:.75rem;color:var(--c1);margin-left:auto}
+    .calc-apply{height:32px;padding:0 14px;background:var(--c1);color:#fff;border:none;border-radius:16px;font-size:.78rem;cursor:pointer;transition:background .12s}
+    .calc-apply:hover{background:#a8442e}
+    .ingredients-scaled .ing-item{padding:3px 0;border-bottom:1px dashed var(--bd)}
+    .ingredients-scaled .ing-note{font-size:.7rem;color:var(--c1);margin-left:6px}
     .cb{padding:10px 12px;min-height:60px}
     .cn{font-family:"Songti SC",SimSun,serif;font-size:.9rem;font-weight:700;margin-bottom:3px;line-height:1.3}
     .cs{font-size:.875rem;color:var(--mt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .3s}
@@ -416,6 +459,13 @@
 </div>
 <div class="ly">
   <nav class="sd" id="sidebar" aria-label="四维筛选">
+    <!-- 时令推荐 -->
+    <div class="seasonal-hdr" id="seasonalHdr">
+      <span class="seasonal-icon">🌿</span>
+      <span class="seasonal-tl" id="seasonalTl">时令推荐</span>
+      <span class="seasonal-sub" id="seasonalSub">芒种</span>
+    </div>
+    <div id="seasonalItems" style="margin-bottom:10px"></div>
     <!-- 朝代 -->
     <button class="flt-hdr" id="fltEraHdr" aria-expanded="false">
       <span class="flt-lbl">📅 朝代</span>
@@ -453,6 +503,16 @@
     <div class="flt-body" id="fltEffBody"></div>
   </nav>
   <main class="mn" id="main">
+    <!-- 随机推荐轮播 -->
+    <div class="carousel-wrap" id="carouselWrap">
+      <div class="carousel-hdr">
+        <span class="carousel-tl">🎲 随便看看</span>
+        <div class="carousel-ctrl">
+          <button class="carousel-btn" id="carouselPause" title="暂停">⏸</button>
+        </div>
+      </div>
+      <div class="carousel-track" id="carouselTrack"></div>
+    </div>
     <!-- Active filter tags -->
     <div class="tags-bar" id="tagsBar"></div>
     <div class="mn-ttl" id="cnt">加载中…</div>
@@ -561,14 +621,202 @@
   function save(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
   function load(k,def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; }catch(e){ return def; } }
 
-  // ── Dark mode ──
+  // ── Dark mode auto (23:00-06:00) + manual priority ──
+  function checkAutoDark(){
+    if(load('cbr_manual_theme',null)!==null) return; // manual override exists
+    const h=new Date().getHours();
+    const autoDark=(h>=23||h<6);
+    const savedDark=load(LS_THEME,false);
+    if(autoDark!==savedDark) applyTheme(autoDark);
+  }
   function applyTheme(dark){
     document.documentElement.dataset.theme = dark ? 'dark' : '';
     document.getElementById('themeBtn').textContent = dark ? '☀️' : '🌙';
     save(LS_THEME, dark);
   }
-  document.getElementById('themeBtn').onclick = () => applyTheme(!load(LS_THEME,false));
+  // manual override flag
+  document.getElementById('themeBtn').onclick = () => {
+    const cur=load(LS_THEME,false);
+    save(LS_THEME,!cur);
+    save('cbr_manual_theme',true); // mark as manually set
+    applyTheme(!cur);
+  };
   applyTheme(load(LS_THEME,false));
+  checkAutoDark();
+  setInterval(checkAutoDark,60000); // check every minute
+
+  // ── C1: 随机推荐轮播 ──
+  const CAROUSEL_COUNT=5;
+  let carouselIdx=0;
+  let carouselPaused=false;
+  let carouselTimer=null;
+  let carouselPool=[];
+
+  function initCarousel(){
+    if(!DATA.length) return;
+    carouselPool=[];
+    const usedIds=new Set();
+    while(carouselPool.length<20){
+      const r=DATA[Math.floor(Math.random()*DATA.length)];
+      if(!usedIds.has(r.id)){usedIds.add(r.id);carouselPool.push(r);}
+    }
+    renderCarousel();
+    startCarouselTimer();
+  }
+
+  function renderCarousel(){
+    const track=document.getElementById('carouselTrack');
+    if(!track) return;
+    const start=carouselIdx*CAROUSEL_COUNT;
+    const slice=carouselPool.slice(start,start+CAROUSEL_COUNT);
+    track.innerHTML=slice.map((d,i)=>{
+      const icon=CAT_ICONS[d.category]||'🍽️';
+      const ph=d.image?`<img src="${d.image}" alt="${d.name}" onerror="this.parentElement.innerHTML='<div class=carousel-ci-ph>${icon}</div>'">`:`<div class="carousel-ci-ph">${icon}</div>`;
+      return `<div class="carousel-card" data-id="${d.id}">
+        <div class="carousel-ci">${ph}</div>
+        <div class="carousel-cb">
+          <div class="carousel-cn">${d.name}</div>
+          <div class="carousel-cs">${d.cuisine||'地方菜'}</div>
+        </div>
+      </div>`;
+    }).join('');
+    track.querySelectorAll('.carousel-card').forEach(c=>{
+      c.onclick=()=>openM(c.dataset.id);
+    });
+    // Pause button state
+    const pauseBtn=document.getElementById('carouselPause');
+    if(pauseBtn){
+      pauseBtn.textContent=carouselPaused?'▶':'⏸';
+      pauseBtn.classList.toggle('paused',!carouselPaused);
+    }
+  }
+
+  function startCarouselTimer(){
+    if(carouselTimer) clearInterval(carouselTimer);
+    carouselTimer=setInterval(()=>{
+      if(carouselPaused) return;
+      carouselIdx=(carouselIdx+1)%Math.ceil(carouselPool.length/CAROUSEL_COUNT);
+      renderCarousel();
+    },30000);
+  }
+
+  document.getElementById('carouselPause').onclick=()=>{
+    carouselPaused=!carouselPaused;
+    const btn=document.getElementById('carouselPause');
+    btn.textContent=carouselPaused?'▶':'⏸';
+    btn.classList.toggle('paused',!carouselPaused);
+  };
+
+  // Hover to pause
+  const carouselWrap=document.getElementById('carouselWrap');
+  if(carouselWrap){
+    carouselWrap.addEventListener('mouseenter',()=>carouselPaused=true);
+    carouselWrap.addEventListener('mouseleave',()=>carouselPaused=false);
+  }
+
+  // ── C3: 节气联动 - 时令推荐 ──
+  const SEASONAL_MAP={
+    '立春':{keyword:'春',icon:'🌱'},
+    '雨水':{keyword:'雨',icon:'🌧️'},
+    '惊蛰':{keyword:'蛰',icon:'⚡'},
+    '春分':{keyword:'春',icon:'🌸'},
+    '清明':{keyword:'青',icon:'🌿'},
+    '谷雨':{keyword:'谷雨',icon:'🌾'},
+    '立夏':{keyword:'夏',icon:'☀️'},
+    '小满':{keyword:'满',icon:'🌾'},
+    '芒种':{keyword:'梅',icon:'🍃'},
+    '夏至':{keyword:'夏',icon:'☀️'},
+    '小暑':{keyword:'暑',icon:'🌡️'},
+    '大暑':{keyword:'暑',icon:'🔥'},
+    '立秋':{keyword:'秋',icon:'🍂'},
+    '处暑':{keyword:'暑',icon:'🍂'},
+    '白露':{keyword:'露',icon:'💧'},
+    '秋分':{keyword:'秋',icon:'🍃'},
+    '寒露':{keyword:'寒',icon:'🍁'},
+    '霜降':{keyword:'霜',icon:'❄️'},
+    '立冬':{keyword:'冬',icon:'❄️'},
+    '小雪':{keyword:'雪',icon:'❄️'},
+    '大雪':{keyword:'雪',icon:'❄️'},
+    '冬至':{keyword:'冬',icon:'❄️'},
+    '小寒':{keyword:'寒',icon:'❄️'},
+    '大寒':{keyword:'寒',icon:'❄️'},
+  };
+  const SEASONAL_INGREDIENTS={
+    '立夏':['樱桃','青梅','枇杷'],
+    '小满':['梅子','樱桃','蚕豆'],
+    '芒种':['梅子','荔枝','西瓜'],
+    '夏至':['西瓜','绿豆','苦瓜'],
+    '小暑':['绿豆','西瓜','莲子'],
+    '大暑':['绿豆','冬瓜','西瓜'],
+    '立秋':['梨','葡萄','百合'],
+    '处暑':['梨','银耳','百合'],
+    '白露':['龙眼','梨','银耳'],
+    '秋分':['螃蟹','桂花','栗子'],
+    '寒露':['柿子','菊花','芝麻'],
+    '霜降':['柿子','山楂','萝卜'],
+  };
+
+  function getCurrentSolarTerm(){
+    const now=new Date();
+    const m=now.getMonth()+1;
+    const d=now.getDate();
+    const terms=[
+      {name:'小寒',month:1,day:5},{name:'大寒',month:1,day:20},
+      {name:'立春',month:2,day:3},{name:'雨水',month:2,day:18},
+      {name:'惊蛰',month:3,day:5},{name:'春分',month:3,day:20},
+      {name:'清明',month:4,day:4},{name:'谷雨',month:4,day:19},
+      {name:'立夏',month:5,day:5},{name:'小满',month:5,day:20},
+      {name:'芒种',month:6,day:5},{name:'夏至',month:6,day:21},
+      {name:'小暑',month:7,day:6},{name:'大暑',month:7,day:22},
+      {name:'立秋',month:8,day:7},{name:'处暑',month:8,day:22},
+      {name:'白露',month:9,day:7},{name:'秋分',month:9,day:22},
+      {name:'寒露',month:10,day:8},{name:'霜降',month:10,day:23},
+      {name:'立冬',month:11,day:7},{name:'小雪',month:11,day:22},
+      {name:'大雪',month:12,day:6},{name:'冬至',month:12,day:21},
+    ];
+    let current='芒种'; // default
+    for(const t of terms){
+      if(m>t.month||(m===t.month&&d>=t.day)) current=t.name;
+    }
+    return current;
+  }
+
+  function renderSeasonalItems(){
+    const st=getCurrentSolarTerm();
+    const stInfo=SEASONAL_MAP[st]||{keyword:'',icon:'🌿'};
+    const ingredients=SEASONAL_INGREDIENTS[st]||[];
+    document.getElementById('seasonalTl').textContent=stInfo.icon+' '+st;
+    document.getElementById('seasonalSub').textContent=ingredients.slice(0,2).join('/')||'时令食材';
+
+    const container=document.getElementById('seasonalItems');
+    if(!container||!DATA.length) return;
+
+    // Find matching recipes
+    const matched=DATA.filter(d=>{
+      const ingStr=Array.isArray(d.ingredients)?d.ingredients.join(' '):(d.ingredients||'');
+      return ingredients.some(ing=>ingStr.includes(ing))||
+        (d.tips&&d.tips.includes(st))||
+        (d.history&&d.history.includes(st));
+    }).slice(0,5);
+
+    if(matched.length===0){
+      // fallback: random
+      matched.push(...DATA.filter((_,i)=>i%7<2).slice(0,5));
+    }
+
+    container.innerHTML=matched.slice(0,5).map(d=>{
+      const icon=CAT_ICONS[d.category]||'🍽️';
+      return `<div class="seasonal-item" data-id="${d.id}">
+        <span class="seasonal-dot"></span>
+        <span>${icon}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</span>
+      </div>`;
+    }).join('');
+
+    container.querySelectorAll('.seasonal-item').forEach(item=>{
+      item.onclick=()=>openM(item.dataset.id);
+    });
+  }
 
   // ── Favorites ──
   let FAVS = load(LS_FAVS,[]);
@@ -1036,6 +1284,48 @@
 
   // ── State ──
   let DATA = [], CATS = {}, filtered = [], mIdx = -1;
+
+  // ── 虚拟滚动参数 D1 ──
+  const ROW_H = 120;  // 每卡片高度(px)
+  const BUFFER = 3;   // 上下buffer行数
+  let _allCards = []; // 缓存所有卡片DOM（主网格）
+  let _allCards2 = []; // 缓存grid2卡片DOM（收藏/历史）
+
+  // 撑开容器总高度
+  function updateContainerHeight(){
+    const g = document.getElementById('grid');
+    if(g) g.style.height = (filtered.length * ROW_H) + 'px';
+  }
+  function updateContainerHeight2(){
+    const g2 = document.getElementById('grid2');
+    if(g2) g2.style.height = (g2._cardCount || 0) * ROW_H + 'px';
+  }
+
+  // 只渲染可视区域±buffer的卡片
+  function renderVisible(){
+    const g = document.getElementById('grid');
+    if(g && _allCards.length){
+      const st = window.scrollY;
+      const vh = window.innerHeight;
+      const start = Math.max(0, Math.floor(st / ROW_H) - BUFFER);
+      const end = Math.min(filtered.length, Math.ceil((st + vh) / ROW_H) + BUFFER);
+      _allCards.forEach((card, i) => {
+        card.style.display = (i >= start && i < end) ? '' : 'none';
+      });
+    }
+    // grid2 虚拟滚动（收藏/历史视图）
+    const g2 = document.getElementById('grid2');
+    if(g2 && _allCards2.length){
+      const st2 = window.scrollY;
+      const vh2 = window.innerHeight;
+      const start2 = Math.max(0, Math.floor(st2 / ROW_H) - BUFFER);
+      const end2 = Math.min(g2._cardCount || 0, Math.ceil((st2 + vh2) / ROW_H) + BUFFER);
+      _allCards2.forEach((card, i) => {
+        card.style.display = (i >= start2 && i < end2) ? '' : 'none';
+      });
+    }
+  }
+
   // v0.4: 多选状态
   let selEras = [];   // 已选朝代
   let selTypes = [];  // 已选食材种类（顶级分类）
@@ -1194,7 +1484,7 @@
   }
 
   function buildEffFilter(){
-    const ALL_EFFECTS = ['高蛋白','高纤维','补气','补虚','滋阴','清热','健脾','驱寒','活血','养血','润肺','明目','降火','利尿','美容'];
+    const ALL_EFFECTS = ['补血','益气','清热','健脾','滋阴','润燥','温阳','养胃'];
     const body = document.getElementById('fltEffBody');
     body.innerHTML = '';
     ALL_EFFECTS.forEach(eff=>{
@@ -1416,26 +1706,46 @@
   // ── Render favorites ──
   function renderFavs(){
     curView='favs';
-    mainEl.innerHTML=`<div class="tags-bar"></div><div class="fav-hdr"><button class="fav-bk" id="bkBtn">← 返回</button><h2>❤️ 我的收藏</h2><span style="color:var(--mt);font-size:.875rem">${FAVS.length}道</span><button class="fav-clr" id="clrBtn">清空全部</button></div><div class="grd" id="grid2" role="list"></div><div class="emp" id="emp" style="display:${FAVS.length?'':'block'}"><div class="ic">💔</div><p>暂无收藏</p></div>`;
+    mainEl.innerHTML=`<div class="tags-bar"></div><div class="fav-hdr"><button class="fav-bk" id="bkBtn">← 返回</button><h2>❤️ 我的收藏</h2><span style="color:var(--mt);font-size:.875rem">${FAVS.length}道</span><button class="fav-clr" id="clrBtn">清空全部</button></div><div class="grd grdV" id="grid2" role="list"></div><div class="emp" id="emp" style="display:${FAVS.length?'':'block'}"><div class="ic">💔</div><p>暂无收藏</p></div>`;
     document.getElementById('bkBtn').onclick=()=>setView('main');
     document.getElementById('clrBtn').onclick=()=>{ if(FAVS.length&&confirm('确定清空全部收藏？')){ FAVS=[]; saveFavs(); setView('main'); }};
     const g2=document.getElementById('grid2');
+    _allCards2=[];
     if(!FAVS.length) return;
     const favData=FAVS.map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
-    favData.forEach(d=>{ g2.appendChild(makeCard(d,0)); });
+    g2._cardCount=favData.length;
+    favData.forEach((d,i)=>{
+      const card=makeCard(d,0);
+      card.classList.add('cardV');
+      card.style.top=(i*ROW_H)+'px';
+      g2.appendChild(card);
+      _allCards2.push(card);
+    });
+    updateContainerHeight2();
+    renderVisible();
     document.getElementById('cnt').innerHTML=`❤️ 收藏 <strong>${FAVS.length}</strong> 道菜`;
   }
 
   // ── Render browse history ──
-  function renderBrowseHist(){
+  function renderHist(){
     curView='hist';
-    mainEl.innerHTML=`<div class="tags-bar"></div><div class="fav-hdr"><button class="fav-bk" id="bkBtn">← 返回</button><h2>📜 浏览历史</h2><span style="color:var(--mt);font-size:.875rem">${VIEW_HIST.length}条</span><button class="fav-clr" id="clrBtn">清空</button></div><div class="grd" id="grid2" role="list"></div><div class="emp" id="emp" style="display:${VIEW_HIST.length?'':'block'}"><div class="ic">📜</div><p>暂无浏览记录</p></div>`;
+    mainEl.innerHTML=`<div class="tags-bar"></div><div class="fav-hdr"><button class="fav-bk" id="bkBtn">← 返回</button><h2>📜 浏览历史</h2><span style="color:var(--mt);font-size:.875rem">${VIEW_HIST.length}条</span><button class="fav-clr" id="clrBtn">清空</button></div><div class="grd grdV" id="grid2" role="list"></div><div class="emp" id="emp" style="display:${VIEW_HIST.length?'':'block'}"><div class="ic">📜</div><p>暂无浏览记录</p></div>`;
     document.getElementById('bkBtn').onclick=()=>{ setMobTab('home'); setView('main'); apply(); };
     document.getElementById('clrBtn').onclick=()=>{ if(VIEW_HIST.length&&confirm('确定清空浏览历史？')){ VIEW_HIST=[]; save('cbr_view_hist',[]); updateHistBadges(); updateHistBdg(); setMobTab('home'); setView('main'); apply(); }};
     const g2=document.getElementById('grid2');
+    _allCards2=[];
     if(!VIEW_HIST.length) return;
     const histData=VIEW_HIST.map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
-    histData.forEach(d=>{ g2.appendChild(makeCard(d,0)); });
+    g2._cardCount=histData.length;
+    histData.forEach((d,i)=>{
+      const card=makeCard(d,0);
+      card.classList.add('cardV');
+      card.style.top=(i*ROW_H)+'px';
+      g2.appendChild(card);
+      _allCards2.push(card);
+    });
+    updateContainerHeight2();
+    renderVisible();
     document.getElementById('cnt').innerHTML=`📜 历史 <strong>${VIEW_HIST.length}</strong> 条`;
   }
 
@@ -1447,7 +1757,7 @@
       if(showCover){
         topHtml += showEraCover();
       }
-      topHtml += `<div class="sortbar"><span class="sortbar-l" id="cnt"></span></div><div class="grd" id="grid" role="list"></div><div class="emp" id="emp" style="display:none"><div class="ic">🍽️</div><p>未找到相关菜谱</p></div>`;
+      topHtml += `<div class="sortbar"><span class="sortbar-l" id="cnt"></span></div><div class="grd grdV" id="grid" role="list"></div><div class="emp" id="emp" style="display:none"><div class="ic">🍽️</div><p>未找到相关菜谱</p></div>`;
       mainEl.innerHTML = topHtml;
 
       // Era card click handlers
@@ -1467,9 +1777,20 @@
     const displayList = getSorted(filtered);
     cEl.innerHTML = curView==='favs' ? `❤️ 收藏 <strong>${FAVS.length}</strong> 道菜` : `共 <strong>${filtered.length}</strong> 道菜${curSort!=='def'?'（'+displayList.length+'已排序）':''}`;
     renderTags();
-    if(!filtered.length){ g.style.display='none'; em.style.display='block'; return; }
+    if(!filtered.length){ g.style.display='none'; em.style.display='block'; _allCards=[]; return; }
     g.style.display=''; em.style.display='none';
-    displayList.forEach((d,i)=>{ g.appendChild(makeCard(d,i)); });
+    // 虚拟滚动：清空重建
+    g.innerHTML='';
+    _allCards = [];
+    displayList.forEach((d,i)=>{
+      const card = makeCard(d,i);
+      card.classList.add('cardV');
+      card.style.top = (i * ROW_H) + 'px';
+      g.appendChild(card);
+      _allCards.push(card);
+    });
+    updateContainerHeight();
+    renderVisible();
   }
 
   function makeCard(d,i){
@@ -1484,7 +1805,7 @@
     const eraColor=ERA_COLORS[d.era]||'var(--c1)';
     c.innerHTML=`<span class="fav${isFaved(d.id)?' favored':''}">${isFaved(d.id)?'⭐':'🤍'}</span>
       <div class="ci">${img}<span class="ci-tg">${eraShort}</span><span class="era-tag" style="background:${eraColor}">${d.era}</span><span class="ci-hv">查看详情</span></div>
-      <div class="cb"><div class="cn">${d.name}</div><div class="cs">${cleanSource(d.source)||'来源待考'}</div><div class="cta">${(d.category.split(' ')[0])+' '+(d.category.split(' ')[1]||'')}</div></div>`;
+      <div class="cb"><div class="cn">${d.name}</div><div class="cs">${(d.cuisine_icon||'')+' '+(d.cuisine||cleanSource(d.source)||'来源待考')}</div><div class="cta">${(d.category.split(' ')[0])+' '+(d.category.split(' ')[1]||'')}</div></div>`;
     c.querySelector('.fav').onclick=(e)=>{e.stopPropagation();e.preventDefault();toggleFav(d.id);};
     c.onclick=()=>openM(d.id);
     c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openM(d.id);}};
@@ -1529,7 +1850,15 @@ ${ratingHtml}
 </div>`;
     if(d.history) bd+=`<div class="md-sc"><div class="md-sb">历史背景</div><p class="md-tx">${highlightHistory(d.history)}</p></div>`;
     if(d.authorBio) bd+=`<div class="md-sc"><div class="md-sb">作者简介</div><p class="md-tx sm">${stripMd(Array.isArray(d.authorBio)?d.authorBio.join(''):d.authorBio||'')}</p></div>`;
-    if(d.ingredients) bd+=`<div class="md-sc"><div class="md-sb">食材·用量</div><p class="md-tx">${Array.isArray(d.ingredients)?d.ingredients.join('\n'):stripMd(d.ingredients||'')}</p></div>`;
+    if(d.ingredients) bd+=`<div class="md-sc"><div class="md-sb">食材·用量</div>
+<div class="calc-row">
+  <span class="calc-lbl">👥 人数</span>
+  <input type="number" class="calc-input" id="personCount" value="1" min="1" max="100">
+  <span class="calc-unit">人</span>
+  <button class="calc-apply" id="calcApply">计算用量</button>
+  <span class="calc-note" id="calcNote"></span>
+</div>
+<div class="ingredients-scaled" id="ingredientsDisplay"></div></div>`;
     if(d.steps){
       const stps=(Array.isArray(d.steps)?d.steps:d.steps.split('\n')).filter(s=>s.trim());
       const stpHtml=stps.map((s,i)=>`<div class="stp"><span class="sn">${i+1}</span><span class="md-tx" style="font-size:1rem">${s.replace(/^\d+\.\s*/,'')}</span></div>`).join('');
@@ -1582,6 +1911,39 @@ ${ratingHtml}
         s.className = (sn<=n?'on':'off');
       });
     };
+    // ── C2: 食材计算器 ──
+    setTimeout(()=>{
+      const calcInput=document.getElementById('personCount');
+      const calcApply=document.getElementById('calcApply');
+      const calcNote=document.getElementById('calcNote');
+      const ingDisplay=document.getElementById('ingredientsDisplay');
+      if(!calcInput||!calcApply||!ingDisplay) return;
+      const origIngredients=Array.isArray(d.ingredients)?d.ingredients.join('\n'):stripMd(d.ingredients||'');
+      function renderIngredients(n){
+        if(n<=1){
+          ingDisplay.innerHTML=`<p class="md-tx">${origIngredients}</p>`;
+          if(calcNote) calcNote.textContent='';
+          return;
+        }
+        // 智能倍增：尝试匹配数字+单位
+        const lines=origIngredients.split('\n');
+        const scaled=lines.map(line=>{
+          const match=line.match(/^(\d+(?:\.\d+)?)\s*(克|g|kg|千克|斤|两|毫升|ml|l|升|杯|碗|个|只|条|块|片)?/);
+          if(match){
+            const num=parseFloat(match[1]);
+            const unit=match[2]||'';
+            return line.replace(match[0],`<b style="color:var(--c1)">${(num*n).toFixed(num%1===0?0:1)}${unit}×${n}人</b>`);
+          }
+          return line;
+        });
+        ingDisplay.innerHTML=`<p class="md-tx">${scaled.join('<br>')}</p>`;
+        if(calcNote) calcNote.textContent=`按${n}人份调整`;
+      }
+      calcInput.oninput=()=>renderIngredients(parseInt(calcInput.value)||1);
+      calcApply.onclick=()=>renderIngredients(parseInt(calcInput.value)||1);
+      // init
+      renderIngredients(1);
+    },50);
   }
 
   function closeM(){ mb.classList.remove('on'); document.body.style.overflow=''; }
@@ -1945,6 +2307,15 @@ ${ratingHtml}
   document.addEventListener('touchend',()=>{ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } });
   document.addEventListener('touchmove',()=>{ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } });
 
+  // ── 虚拟滚动滚动监听 D1 ──
+  window.addEventListener('scroll', renderVisible, {passive:true});
+  window.addEventListener('resize', renderVisible, {passive:true});
+
+  // ── Service Worker 注册 D2 ──
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+
   // ── Init ──
   showSk();
   // 本地开发用 ./recipes_data.json，生产环境用 raw.githubusercontent.com（绕过 GitHub Pages CDN 500KB 限制）
@@ -1962,6 +2333,7 @@ ${ratingHtml}
       buildEraFilter(); buildTypeFilter(); buildCatFilter(); buildSrcFilter(); buildEffFilter();
       buildQuickBar();
       render(); initDaily(); updateHistBadges(); updateHistBdg(); checkUrlParam();
+      initCarousel(); renderSeasonalItems();
     })
     .catch(err=>{
       document.getElementById('cnt').innerHTML='<strong style="color:red">加载失败: '+err.message+'</strong>';
