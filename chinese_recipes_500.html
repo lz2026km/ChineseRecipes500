@@ -2429,7 +2429,7 @@ const POEMS={
   }
 
   // ── Init ──
-  showSk();
+  window.__iife = true; console.log('IIFE starts'); showSk();
   // 本地开发用 ./recipes_data.json，生产环境用 raw.githubusercontent.com（绕过 GitHub Pages CDN 500KB 限制）
   const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
     ? './recipes_data.json'
