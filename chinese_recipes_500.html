@@ -156,7 +156,7 @@
     .card:focus-visible{outline:3px solid var(--season-accent,var(--c3));outline-offset:2px}
     /* ── 虚拟滚动 ── */
     .grdV{position:relative}
-    .cardV{position:absolute;left:0;right:0;box-sizing:border-box}
+
     .card .fav{position:absolute;top:8px;right:8px;font-size:1.1rem;z-index:2;opacity:0;transition:opacity .15s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
     .card:hover .fav,.card.faved .fav{opacity:1}
     .card.faved .fav{opacity:1}
@@ -1285,45 +1285,22 @@
   // ── State ──
   let DATA = [], CATS = {}, filtered = [], mIdx = -1;
 
-  // ── 虚拟滚动参数 D1 ──
-  const ROW_H = 120;  // 每卡片高度(px)
-  const BUFFER = 3;   // 上下buffer行数
-  let _allCards = []; // 缓存所有卡片DOM（主网格）
-  let _allCards2 = []; // 缓存grid2卡片DOM（收藏/历史）
+
 
   // 撑开容器总高度
-  function updateContainerHeight(){
-    const g = document.getElementById('grid');
-    if(g) g.style.height = (filtered.length * ROW_H) + 'px';
-  }
-  function updateContainerHeight2(){
-    const g2 = document.getElementById('grid2');
-    if(g2) g2.style.height = (g2._cardCount || 0) * ROW_H + 'px';
-  }
+  // updateContainerHeight 虚拟滚动已禁用
+  function updateContainerHeight(){}
+  function updateContainerHeight2(){}
+
+  // 虚拟滚动变量（已禁用但保留）
+  let _allCards = [];
+  let _allCards2 = [];
 
   // 只渲染可视区域±buffer的卡片
   function renderVisible(){
-    const g = document.getElementById('grid');
-    if(g && _allCards.length){
-      const st = window.scrollY;
-      const vh = window.innerHeight;
-      const start = Math.max(0, Math.floor(st / ROW_H) - BUFFER);
-      const end = Math.min(filtered.length, Math.ceil((st + vh) / ROW_H) + BUFFER);
-      _allCards.forEach((card, i) => {
-        card.style.display = (i >= start && i < end) ? '' : 'none';
-      });
-    }
-    // grid2 虚拟滚动（收藏/历史视图）
-    const g2 = document.getElementById('grid2');
-    if(g2 && _allCards2.length){
-      const st2 = window.scrollY;
-      const vh2 = window.innerHeight;
-      const start2 = Math.max(0, Math.floor(st2 / ROW_H) - BUFFER);
-      const end2 = Math.min(g2._cardCount || 0, Math.ceil((st2 + vh2) / ROW_H) + BUFFER);
-      _allCards2.forEach((card, i) => {
-        card.style.display = (i >= start2 && i < end2) ? '' : 'none';
-      });
-    }
+    // 虚拟滚动已禁用 - 显示全部卡片
+    _allCards.forEach(card => card.style.display = '');
+    _allCards2.forEach(card => card.style.display = '');
   }
 
   // v0.4: 多选状态
@@ -1716,12 +1693,9 @@
     g2._cardCount=favData.length;
     favData.forEach((d,i)=>{
       const card=makeCard(d,0);
-      card.classList.add('cardV');
-      card.style.top=(i*ROW_H)+'px';
       g2.appendChild(card);
       _allCards2.push(card);
     });
-    updateContainerHeight2();
     renderVisible();
     document.getElementById('cnt').innerHTML=`❤️ 收藏 <strong>${FAVS.length}</strong> 道菜`;
   }
@@ -1739,12 +1713,9 @@
     g2._cardCount=histData.length;
     histData.forEach((d,i)=>{
       const card=makeCard(d,0);
-      card.classList.add('cardV');
-      card.style.top=(i*ROW_H)+'px';
       g2.appendChild(card);
       _allCards2.push(card);
     });
-    updateContainerHeight2();
     renderVisible();
     document.getElementById('cnt').innerHTML=`📜 历史 <strong>${VIEW_HIST.length}</strong> 条`;
   }
@@ -1784,12 +1755,9 @@
     _allCards = [];
     displayList.forEach((d,i)=>{
       const card = makeCard(d,i);
-      card.classList.add('cardV');
-      card.style.top = (i * ROW_H) + 'px';
       g.appendChild(card);
       _allCards.push(card);
     });
-    updateContainerHeight();
     renderVisible();
   }
 
