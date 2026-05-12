@@ -615,8 +615,8 @@
 <script>
 (function(){
   'use strict';
-
-  // ── Persistence ──
+  window.__top_diag = 'TOP';
+  console.log('TOP IIFE');
   const LS_THEME = 'cbr_theme';
   const LS_FAVS  = 'cbr_favs';
   const LS_DLY   = 'cbr_dly_date';
@@ -2430,6 +2430,7 @@ const POEMS={
   // }
 
   // ── Init ──
+  window.__iife_DIAG = 'line1';
   window.__iife = true; console.log('IIFE starts'); showSk();
   const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
     ? './recipes_data.json'
