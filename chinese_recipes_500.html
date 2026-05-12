@@ -2439,7 +2439,7 @@ const POEMS={
   // 本地开发用 ./recipes_data.json，生产环境用 raw.githubusercontent.com（绕过 GitHub Pages CDN 500KB 限制）
   const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
     ? './recipes_data.json'
-    : 'https://raw.githubusercontent.com/lz2026km/ChineseRecipes500/gh-pages/recipes_data.json';
+    : 'https://raw.githubusercontent.com/lz2026km/ChineseRecipes500/gh-pages/recipes_data.json?v='+Date.now();
   window.__sb = function(msg) {
     var el = document.getElementById('__status_banner');
     if(el) el.innerHTML = msg;
@@ -2450,7 +2450,7 @@ const POEMS={
     .then(d=>{
       DATA=d;
       window.__sb('✅ JSON解析成功:'+d.length+'道菜，准备渲染...');
-      alert('🎉 数据加载成功！共'+d.length+'道菜！');
+      window.__loaded = d.length; window.__sb('✅ 渲染中...');
       CATS={};
       DATA.forEach(d=>{ const cat=d.category||'🍽️ 其他'; if(!CATS[cat]) CATS[cat]=[]; CATS[cat].push(d); });
       filtered=[...DATA];
