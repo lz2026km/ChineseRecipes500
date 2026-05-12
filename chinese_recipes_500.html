@@ -2417,7 +2417,7 @@ const POEMS={
 
   // ── Service Worker 注册 D2 ──
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?t='+Date.now()).catch(()=>{});
   }
 
   // ── Init ──
