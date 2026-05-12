@@ -2434,50 +2434,45 @@ const POEMS={
   const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
     ? './recipes_data.json'
     : './recipes_data.json';
-// 超时降级：5秒内未返回则自动切换同步XHR
-const loadJSON = (url) => new Promise((resolve, reject) => {
-  const t = setTimeout(() => reject(new Error('timeout')), 5000);
-  fetch(url).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-    .then(d=>{ clearTimeout(t); resolve(d); })
-    .catch(e=>{ clearTimeout(t); reject(e); });
-});
-const loadSync = (url) => {
+// 同步XHR加载（绕过异步fetch在某些环境下pending的问题）
+let jsonData;
+try {
   const xhr = new XMLHttpRequest();
-  xhr.open('GET', url, false);
+  xhr.open('GET', DATA_URL, false);
   xhr.send();
-  if(xhr.status !== 200) throw new Error('XHR '+xhr.status);
-  return JSON.parse(xhr.responseText);
-};
-loadJSON(DATA_URL)
-    .catch(()=>{
-      console.warn('远程JSON超时/失败，改用同步XHR本地加载');
-      return loadSync('./recipes_data.json');
-    })
-    .then(d=>{
-      DATA=d;
-      CATS={};
-      DATA.forEach(d=>{ const cat=d.category||'🍽️ 其他'; if(!CATS[cat]) CATS[cat]=[]; CATS[cat].push(d); });
-      filtered=[...DATA];
-      selEras=['全部'];
-      try{buildEraFilter();}catch(e){console.error('buildEraFilter:',e);}
-      try{buildTypeFilter();}catch(e){console.error('buildTypeFilter:',e);}
-      try{buildCatFilter();}catch(e){console.error('buildCatFilter:',e);}
-      try{buildSrcFilter();}catch(e){console.error('buildSrcFilter:',e);}
-      try{buildEffFilter();}catch(e){console.error('buildEffFilter:',e);}
-      try{buildQuickBar();}catch(e){console.error('buildQuickBar:',e);}
-      try{render();}catch(e){console.error('render:',e);}
-      try{initDaily();}catch(e){console.error('initDaily:',e);}
-      try{updateHistBadges();}catch(e){console.error('updateHistBadges:',e);}
-      try{updateHistBdg();}catch(e){console.error('updateHistBdg:',e);}
-      try{checkUrlParam();}catch(e){console.error('checkUrlParam:',e);}
-      try{initCarousel();}catch(e){console.error('initCarousel:',e);}
-      try{renderSeasonalItems();}catch(e){console.error('renderSeasonalItems:',e);}
-    })
-    .catch(err=>{
-      document.getElementById('cnt').innerHTML='<strong style="color:red">加载失败: '+err.message+'</strong>';
-      console.error(err);
-    });
-  });
+  if(xhr.status !== 200) throw new Error('HTTP '+xhr.status);
+  jsonData = JSON.parse(xhr.responseText);
+} catch(e) {
+  try {
+    const xhr2 = new XMLHttpRequest();
+    xhr2.open('GET', './recipes_data.json', false);
+    xhr2.send();
+    if(xhr2.status !== 200) throw new Error('本地JSON加载失败: '+xhr2.status);
+    jsonData = JSON.parse(xhr2.responseText);
+  } catch(e2) {
+    document.getElementById('cnt').innerHTML='<strong style="color:red">加载失败: '+e2.message+'</strong>';
+    console.error(e2);
+    throw e2;
+  }
+}
+DATA=jsonData;
+CATS={};
+DATA.forEach(d=>{ const cat=d.category||'🍽️ 其他'; if(!CATS[cat]) CATS[cat]=[]; CATS[cat].push(d); });
+filtered=[...DATA];
+selEras=['全部'];
+try{buildEraFilter();}catch(e){console.error('buildEraFilter:',e);}
+try{buildTypeFilter();}catch(e){console.error('buildTypeFilter:',e);}
+try{buildCatFilter();}catch(e){console.error('buildCatFilter:',e);}
+try{buildSrcFilter();}catch(e){console.error('buildSrcFilter:',e);}
+try{buildEffFilter();}catch(e){console.error('buildEffFilter:',e);}
+try{buildQuickBar();}catch(e){console.error('buildQuickBar:',e);}
+try{render();}catch(e){console.error('render:',e);}
+try{initDaily();}catch(e){console.error('initDaily:',e);}
+try{updateHistBadges();}catch(e){console.error('updateHistBadges:',e);}
+try{updateHistBdg();}catch(e){console.error('updateHistBdg:',e);}
+try{checkUrlParam();}catch(e){console.error('checkUrlParam:',e);}
+try{initCarousel();}catch(e){console.error('initCarousel:',e);}
+try{renderSeasonalItems();}catch(e){console.error('renderSeasonalItems:',e);}
 })();
 </script>
 
