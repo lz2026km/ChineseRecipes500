@@ -2430,12 +2430,11 @@ const POEMS={
 
   // ── Init ──
   showSk();
-  // 本地开发用 ./recipes_data.json，生产环境用 raw.githubusercontent.com（绕过 GitHub Pages CDN 500KB 限制）
+  // 本地开发用 ./recipes_data.json，生产环境用 lz2026km.github.io
   const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
     ? './recipes_data.json'
-    : 'https://raw.githubusercontent.com/lz2026km/ChineseRecipes500/gh-pages/recipes_data.json?v='+Date.now();
-// 内联752条数据，避免网络依赖
-      fetch(DATA_URL)
+    : 'https://lz2026km.github.io/ChineseRecipes500/recipes_data.json?v='+Date.now();
+  fetch(DATA_URL)
     .then(r=>{if(!r.ok) throw new Error('HTTP '+r.status); return r.json();})
     .then(d=>{
       DATA=d;
@@ -2452,15 +2451,6 @@ const POEMS={
       document.getElementById('cnt').innerHTML='<strong style="color:red">加载失败: '+err.message+'</strong>';
       console.error(err);
     });
-      CATS={};
-      DATA.forEach(d=>{ const cat=d.category||'🍽️ 其他'; if(!CATS[cat]) CATS[cat]=[]; CATS[cat].push(d); });
-      filtered=[...DATA];
-      selEras=['全部'];
-      buildEraFilter(); buildTypeFilter(); buildCatFilter(); buildSrcFilter(); buildEffFilter();
-      buildQuickBar();
-      render(); initDaily(); updateHistBadges(); updateHistBdg(); checkUrlParam();
-      initCarousel(); renderSeasonalItems();
-  });
 })();
 </script>
 </body>
