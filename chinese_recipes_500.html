@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v3.0</title>
+  <title>中华美食千百道 v3.4</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -57,6 +57,19 @@
     .srch-hi{padding:10px 16px;cursor:pointer;font-size:.875rem;color:var(--tx);display:flex;align-items:center;gap:8px;transition:background .1s}
     .srch-hi:hover{background:var(--bg)}
     .srch-hi mark{background:rgba(200,85,61,.15);color:var(--c1);border-radius:3px}
+    /* Search tabs */
+    .srch-wrap{flex:1;max-width:500px;display:flex;flex-direction:column;gap:6px}
+    .srch-tabs{display:flex;gap:2px;padding:3px;background:var(--bg);border-radius:10px;width:100%}
+    .srch-tab{padding:4px 10px;border-radius:8px;font-size:.75rem;cursor:pointer;border:none;background:transparent;color:var(--mt);transition:all .15s;white-space:nowrap}
+    .srch-tab:hover{color:var(--tx)}
+    .srch-tab.on{background:var(--c1);color:#fff;font-weight:600}
+    .srch-box{position:relative;height:44px}
+    .srch-box input{width:100%;height:44px;padding:0 16px 0 40px;border:1.5px solid var(--bd);border-radius:22px;font-size:1rem;background:var(--bg);color:var(--tx);outline:none;transition:border-color .15s,box-shadow .15s}
+    .srch-box input:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(200,85,61,.12)}
+    .srch-box .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mt)}
+    .srch-box .si2{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--mt);font-size:.8rem;cursor:pointer;display:none}
+    .srch-box .si2.on{display:block}
+    .srch-placeholder{display:flex;align-items:center;gap:6px}
     .qbar{display:flex;align-items:center;gap:8px;padding:8px 20px;background:var(--bg);border-bottom:1px solid var(--bd);flex-wrap:wrap}
     .qbar-lbl{font-size:.75rem;color:var(--mt);white-space:nowrap;font-weight:700}
     .qbar-eras{display:flex;gap:6px;flex-wrap:wrap}
@@ -281,6 +294,41 @@
     .yi-tag{padding:2px 8px;border-radius:8px;font-size:.7rem;font-weight:600}
     .yi-tag.yi{background:rgba(76,175,80,.15);color:#2e7d32;border:1px solid rgba(76,175,80,.3)}
     .ji-tag{padding:2px 8px;border-radius:8px;font-size:.7rem;font-weight:600;background:rgba(244,67,54,.12);color:#c62828;border:1px solid rgba(244,67,54,.25)}
+    /* ── Slide Panel (收藏/历史) ── */
+    .slide-panel{position:fixed;top:0;right:0;width:300px;max-width:85vw;height:100vh;background:var(--sf);z-index:500;box-shadow:-4px 0 20px rgba(0,0,0,.2);transform:translateX(100%);transition:transform .3s ease;overflow-y:auto}
+    .slide-panel.on{transform:translateX(0)}
+    .slide-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--sf);z-index:1}
+    .slide-panel-hdr h3{font-size:1rem;color:var(--tx);display:flex;align-items:center;gap:6px}
+    .slide-panel-close{width:32px;height:32px;border:none;background:var(--bg);border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s}
+    .slide-panel-close:hover{background:var(--bd)}
+    .slide-panel-body{padding:12px}
+    .slide-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:background .12s;margin-bottom:4px}
+    .slide-item:hover{background:var(--bg)}
+    .slide-item-icon{font-size:1.4rem;flex-shrink:0}
+    .slide-item-info{flex:1;min-width:0}
+    .slide-item-name{font-size:.875rem;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .slide-item-meta{font-size:.7rem;color:var(--mt);margin-top:2px}
+    .slide-item-del{font-size:.75rem;color:var(--mt);opacity:0;transition:opacity .12s;padding:4px 6px;border-radius:6px;background:transparent;border:none;cursor:pointer}
+    .slide-item:hover .slide-item-del{opacity:1}
+    .slide-item-del:hover{background:var(--bd);color:var(--c1)}
+    .slide-empty{text-align:center;padding:40px 20px;color:var(--mt);font-size:.875rem}
+    .slide-empty .ic{font-size:2rem;margin-bottom:8px}
+    .slide-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:499;opacity:0;pointer-events:none;transition:opacity .3s}
+    .slide-overlay.on{opacity:1;pointer-events:auto}
+    /* ── Mobile bottom tab bar ── */
+    .mob-tab-bar{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:var(--sf);border-top:1px solid var(--bd);z-index:100;padding:0 8px;align-items:center;justify-content:space-around;box-shadow:0 -2px 12px var(--sh)}
+    .mob-tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;border-radius:10px;cursor:pointer;transition:background .12s;border:none;background:transparent;color:var(--mt);font-size:.65rem;min-width:52px}
+    .mob-tab.on{color:var(--c1)}
+    .mob-tab:hover{background:var(--bg)}
+    .mob-tab .tab-icon{font-size:1.3rem}
+    .mob-tab .tab-lbl{font-weight:600}
+    .mob-tab .tab-bdg{position:absolute;top:2px;right:6px;background:var(--c1);color:#fff;border-radius:50%;width:14px;height:14px;font-size:.55rem;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1}
+    .mob-tab{position:relative}
+    /* Card star button */
+    .card .fav{position:absolute;top:8px;right:8px;font-size:1.1rem;z-index:2;opacity:0;transition:opacity .15s,filter .15s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
+    .card:hover .fav,.card.faved .fav{opacity:1}
+    .card.faved .fav{opacity:1}
+    .card .fav.faved{filter:drop-shadow(0 1px 4px rgba(200,85,61,.6))}
     /* ── 古诗词 ── */
     .poem{margin:14px 0 6px;padding:12px 16px;background:linear-gradient(135deg,rgba(212,175,55,.06),rgba(200,85,61,.04));border-radius:12px;border:1px solid rgba(212,175,55,.2);position:relative}
     .poem-title{font-size:.7rem;color:var(--mt);margin-bottom:4px;font-weight:600}
@@ -289,10 +337,17 @@
     @media(max-width:640px){
       .sd{display:none}
       .grd{grid-template-columns:repeat(2,1fr);gap:10px}
-      .mn{padding:14px}
+      .mn{padding:14px;padding-bottom:70px}
       .md-h{height:180px}
       .rel-grd{grid-template-columns:repeat(2,1fr)}
       .dly{flex-direction:column;gap:4px;align-items:flex-start}
+      .mob-tab-bar{display:flex}
+      .hdr{padding:0 12px}
+      .srch-wrap{max-width:100%}
+      .srch-tabs{font-size:.7rem}
+      .srch-tab{padding:3px 8px}
+      .hdr-btn:not(#favBtn):not(#themeBtn):not(#musicBtn){display:none}
+      .btn-rnd{display:none}
     }
   </style>
 </head>
@@ -304,11 +359,19 @@
   <span class="dly-rhs" id="dlyRhs"></span>
 </div>
 <header class="hdr">
-  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道</div>
-  <div class="srch">
-    <span>🔍</span>
-    <input type="search" id="srch" placeholder="搜索菜名…" aria-label="搜索菜谱" autocomplete="off">
-    <div class="srch-hist" id="srchHist"></div>
+  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v3.4</span></div>
+  <div class="srch-wrap">
+    <div class="srch-tabs">
+      <button class="srch-tab on" data-tab="name">菜名</button>
+      <button class="srch-tab" data-tab="ingredient">食材</button>
+      <button class="srch-tab" data-tab="effect">功效</button>
+    </div>
+    <div class="srch-box">
+      <span class="si">🔍</span>
+      <input type="search" id="srch" placeholder="搜索菜名…" aria-label="搜索菜谱" autocomplete="off">
+      <span class="si2" id="clearSrch">✕</span>
+      <div class="srch-hist" id="srchHist"></div>
+    </div>
   </div>
   <div class="hdr-actions">
     <button class="hdr-btn" id="favBtn" title="收藏夹" aria-label="收藏夹">
@@ -423,6 +486,41 @@
     <div style="text-align:center;margin-top:10px"><button class="fav-bk" id="closeShare" style="font-size:.8rem">取消</button></div>
   </div>
 </div>
+<!-- Slide overlay -->
+<div class="slide-overlay" id="slideOverlay"></div>
+<!-- Favorites slide panel -->
+<div class="slide-panel" id="favPanel">
+  <div class="slide-panel-hdr">
+    <h3>❤️ 我的收藏</h3>
+    <button class="slide-panel-close" id="closeFavPanel">✕</button>
+  </div>
+  <div class="slide-panel-body" id="favPanelBody"></div>
+</div>
+<!-- History slide panel -->
+<div class="slide-panel" id="histPanel">
+  <div class="slide-panel-hdr">
+    <h3>📜 浏览历史</h3>
+    <button class="slide-panel-close" id="closeHistPanel">✕</button>
+  </div>
+  <div class="slide-panel-body" id="histPanelBody"></div>
+</div>
+<!-- Mobile bottom tab bar -->
+<div class="mob-tab-bar" id="mobTabBar">
+  <button class="mob-tab on" data-view="home" id="mobHome">
+    <span class="tab-icon">🏠</span><span class="tab-lbl">首页</span>
+  </button>
+  <button class="mob-tab" data-view="filter" id="mobFilter">
+    <span class="tab-icon">☰</span><span class="tab-lbl">筛选</span>
+  </button>
+  <button class="mob-tab" data-view="favs" id="mobFavs">
+    <span class="tab-icon">⭐</span><span class="tab-lbl">收藏</span>
+    <span class="tab-bdg" id="mobFavBdg" style="display:none">0</span>
+  </button>
+  <button class="mob-tab" data-view="hist" id="mobHist">
+    <span class="tab-icon">📜</span><span class="tab-lbl">历史</span>
+    <span class="tab-bdg" id="mobHistBdg" style="display:none">0</span>
+  </button>
+</div>
 <!-- 右键快捷菜单 -->
 <div class="ctx-menu" id="ctxMenu">
   <div class="ctx-item" id="ctxOpen">📖 打开详情</div>
@@ -494,11 +592,202 @@
   function updateCardFav(id){
     document.querySelectorAll('.card[data-id="'+id+'"]').forEach(c=>{
       c.classList.toggle('faved',isFaved(id));
+      const favSpan = c.querySelector('.fav');
+      if(favSpan){
+        favSpan.textContent = isFaved(id) ? '⭐' : '🤍';
+        favSpan.classList.toggle('favored',isFaved(id));
+      }
     });
   }
   function updateMdFavBtn(id){
     document.getElementById('mdFav').textContent = isFaved(id) ? '❤️' : '🤍';
   }
+
+  // ── Browse History (max 10) ──
+  let VIEW_HIST = load('cbr_view_hist',[]);
+  function addViewHist(id){
+    if(!id) return;
+    VIEW_HIST = VIEW_HIST.filter(h=>h!==id);
+    VIEW_HIST.unshift(id);
+    if(VIEW_HIST.length>10) VIEW_HIST = VIEW_HIST.slice(0,10);
+    save('cbr_view_hist',VIEW_HIST);
+    updateHistBadges();
+  }
+  function updateHistBadges(){
+    const n = VIEW_HIST.length;
+    const b = document.getElementById('mobHistBdg');
+    b.textContent = n; b.style.display = n ? 'flex' : 'none';
+  }
+  updateHistBadges();
+
+  // ── Search Tab ──
+  let curSearchTab = 'name';
+
+  // ── Slide Panels ──
+  function openSlidePanel(panelId){
+    const panel = document.getElementById(panelId);
+    document.getElementById('slideOverlay').classList.add('on');
+    panel.classList.add('on');
+  }
+  function closeSlidePanel(panelId){
+    const panel = document.getElementById(panelId);
+    panel.classList.remove('on');
+    document.getElementById('slideOverlay').classList.remove('on');
+  }
+  function closeAllSlidePanels(){
+    document.querySelectorAll('.slide-panel').forEach(p=>p.classList.remove('on'));
+    document.getElementById('slideOverlay').classList.remove('on');
+  }
+  document.getElementById('slideOverlay').onclick = closeAllSlidePanels;
+  document.getElementById('closeFavPanel').onclick = ()=>closeSlidePanel('favPanel');
+  document.getElementById('closeHistPanel').onclick = ()=>closeSlidePanel('histPanel');
+
+  // Render favorites panel
+  function renderFavPanel(){
+    const body = document.getElementById('favPanelBody');
+    if(!FAVS.length){
+      body.innerHTML = '<div class="slide-empty"><div class="ic">💔</div><p>暂无收藏</p></div>';
+      return;
+    }
+    body.innerHTML = FAVS.map(id=>{
+      const d = DATA.find(x=>x.id===id);
+      if(!d) return '';
+      const icon = CAT_ICONS[d.category]||'🍽️';
+      return `<div class="slide-item" data-id="${d.id}">
+        <span class="slide-item-icon">${icon}</span>
+        <div class="slide-item-info">
+          <div class="slide-item-name">${d.name}</div>
+          <div class="slide-item-meta">${d.era} · ${d.cuisine||'地方菜'}</div>
+        </div>
+        <button class="slide-item-del" data-del="${d.id}" title="取消收藏">✕</button>
+      </div>`;
+    }).join('');
+    body.querySelectorAll('.slide-item').forEach(item=>{
+      item.onclick = (e)=>{
+        if(e.target.dataset.del) return;
+        openM(item.dataset.id);
+        closeSlidePanel('favPanel');
+      };
+    });
+    body.querySelectorAll('.slide-item-del').forEach(btn=>{
+      btn.onclick = (e)=>{
+        e.stopPropagation();
+        toggleFav(btn.dataset.del);
+        renderFavPanel();
+      };
+    });
+  }
+
+  // Render history panel
+  function renderHistPanel(){
+    const body = document.getElementById('histPanelBody');
+    if(!VIEW_HIST.length){
+      body.innerHTML = '<div class="slide-empty"><div class="ic">📜</div><p>暂无浏览历史</p></div>';
+      return;
+    }
+    body.innerHTML = VIEW_HIST.map(id=>{
+      const d = DATA.find(x=>x.id===id);
+      if(!d) return '';
+      const icon = CAT_ICONS[d.category]||'🍽️';
+      return `<div class="slide-item" data-id="${d.id}">
+        <span class="slide-item-icon">${icon}</span>
+        <div class="slide-item-info">
+          <div class="slide-item-name">${d.name}</div>
+          <div class="slide-item-meta">${d.era} · ${d.cuisine||'地方菜'}</div>
+        </div>
+        <button class="slide-item-del" data-del="${d.id}" title="删除记录">✕</button>
+      </div>`;
+    }).join('');
+    body.querySelectorAll('.slide-item').forEach(item=>{
+      item.onclick = (e)=>{
+        if(e.target.dataset.del) return;
+        openM(item.dataset.id);
+        closeSlidePanel('histPanel');
+      };
+    });
+    body.querySelectorAll('.slide-item-del').forEach(btn=>{
+      btn.onclick = (e)=>{
+        e.stopPropagation();
+        VIEW_HIST = VIEW_HIST.filter(h=>h!==btn.dataset.del);
+        save('cbr_view_hist',VIEW_HIST);
+        updateHistBadges();
+        renderHistPanel();
+      };
+    });
+  }
+
+  // FavBtn opens slide panel
+  document.getElementById('favBtn').onclick = ()=>{
+    renderFavPanel();
+    openSlidePanel('favPanel');
+  };
+  // New history btn in header (next to favBtn)
+  const histBtn = document.createElement('button');
+  histBtn.className = 'hdr-btn';
+  histBtn.id = 'histBtn';
+  histBtn.title = '浏览历史';
+  histBtn.innerHTML = '📜<span class="bdg" id="histBdg" style="display:none">0</span>';
+  histBtn.onclick = ()=>{
+    renderHistPanel();
+    openSlidePanel('histPanel');
+  };
+  document.getElementById('favBtn').after(histBtn);
+  function updateHistBdg(){
+    const n = VIEW_HIST.length;
+    const b = document.getElementById('histBdg');
+    if(b){ b.textContent = n; b.style.display = n ? 'flex' : 'none'; }
+  }
+  updateHistBdg();
+
+  // Mobile tab bar
+  function setMobTab(view){
+    document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('on'));
+    const tabMap = {home:'mobHome',filter:'mobFilter',favs:'mobFavs',hist:'mobHist'};
+    const el = document.getElementById(tabMap[view]||tabMap.home);
+    if(el) el.classList.add('on');
+  }
+  document.querySelectorAll('.mob-tab').forEach(btn=>{
+    btn.onclick = ()=>{
+      const v = btn.dataset.view;
+      setMobTab(v);
+      if(v==='home'||v==='filter'){
+        closeAllSlidePanels();
+        if(sidebar) sidebar.style.display = (v==='filter') ? '' : '';
+        if(v==='home'){ sidebar.style.display = ''; clearAll(); apply(); }
+      } else if(v==='favs'){
+        closeAllSlidePanels();
+        sidebar.style.display = 'none';
+        renderFavs();
+      } else if(v==='hist'){
+        closeAllSlidePanels();
+        sidebar.style.display = 'none';
+        renderHist();
+      }
+    };
+  });
+
+  // ── Search Tab Logic ──
+  document.querySelectorAll('.srch-tab').forEach(tab=>{
+    tab.onclick = ()=>{
+      document.querySelectorAll('.srch-tab').forEach(t=>t.classList.remove('on'));
+      tab.classList.add('on');
+      curSearchTab = tab.dataset.tab;
+      const placeholder = {name:'搜索菜名…',ingredient:'搜索食材（如：猪肉、豆腐）…',effect:'搜索功效（如：补气、清热）…'};
+      document.getElementById('srch').placeholder = placeholder[curSearchTab]||placeholder.name;
+      // Re-trigger search with current input
+      const val = document.getElementById('srch').value.trim();
+      if(val) apply();
+    };
+  });
+
+  // Clear search button
+  document.getElementById('clearSrch').onclick = ()=>{
+    document.getElementById('srch').value = '';
+    curQ = '';
+    document.getElementById('clearSrch').classList.remove('on');
+    document.getElementById('srchHist').classList.remove('on');
+    apply();
+  };
 
   // ── Search history ──
   let HIST = load(LS_HIST,[]);
@@ -530,12 +819,14 @@
   srchEl.addEventListener('blur',()=>{ setTimeout(()=>srchHistEl.classList.remove('on'),200); });
   srchEl.addEventListener('input',()=>{
     const q = srchEl.value.trim().toLowerCase();
-    if(!q){ srchHistEl.classList.remove('on'); srchHistEl.innerHTML=''; return; }
+    // Show/hide clear button
+    document.getElementById('clearSrch').classList.toggle('on', !!srchEl.value.length);
+    if(!q){ srchHistEl.classList.remove('on'); srchHistEl.innerHTML=''; curQ=''; apply(); return; }
     // Smart suggestion: match recipe names
     const matches = DATA.filter(d=>d.name.toLowerCase().includes(q)).slice(0,8);
     const icon = d=>CAT_ICONS[d.category]||'🍽️';
     let html = matches.map(d=>{
-      const nm = d.name.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi'),'<mark>$1</mark>');
+      const nm = d.name.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&')})`,'gi'),'<mark>$1</mark>');
       return `<div class="srch-hi" data-q="${d.name}" data-id="${d.id}">${icon(d)} ${nm}<span style="margin-left:auto;font-size:.7rem;color:var(--mt)">${d.era.split('·')[0]}</span></div>`;
     }).join('');
     if(matches.length){ html += `<div class="srch-hi" style="color:var(--mt);font-size:.75rem;border-top:1px solid var(--bd)" id="srchApply">↩ 搜索 "${srchEl.value}"（${matches.length}道）</div>`; }
@@ -545,12 +836,20 @@
       div.onclick = ()=>{
         srchEl.value = div.dataset.q;
         curQ = div.dataset.q;
+        document.getElementById('clearSrch').classList.add('on');
         addHist(curQ); renderHist(); apply();
         srchHistEl.classList.remove('on');
       };
     });
     const applyBtn = document.getElementById('srchApply');
-    if(applyBtn) applyBtn.onclick = ()=>{ curQ=srchEl.value.toLowerCase(); addHist(curQ); renderHist(); apply(); srchHistEl.classList.remove('on'); };
+    if(applyBtn) applyBtn.onclick = ()=>{ curQ=srchEl.value.toLowerCase(); document.getElementById('clearSrch').classList.add('on'); addHist(curQ); renderHist(); apply(); srchHistEl.classList.remove('on'); };
+    // Real-time filtering: also apply search immediately
+    curQ = srchEl.value.toLowerCase();
+    if(curView!=='main') setView('main');
+    document.querySelectorAll('#fltSrcBody input').forEach(inp=>inp.checked=inp.dataset.word===curQ);
+    updateFilterCount('src');
+    addHist(curQ);
+    apply();
   });
 
   // ── Quick bar builders ──
@@ -1027,8 +1326,19 @@
   function apply(){
     const q = curQ.toLowerCase();
     filtered = DATA.filter(d=>{
-      // keyword search
-      const okQ = !q || d.name.toLowerCase().includes(q) || (d.source&&d.source.toLowerCase().includes(q));
+      // keyword search (with tab: name/ingredient/effect)
+      let okQ = true;
+      if(q){
+        if(curSearchTab==='name'){
+          okQ = d.name.toLowerCase().includes(q) || (d.source&&d.source.toLowerCase().includes(q));
+        } else if(curSearchTab==='ingredient'){
+          const ing = Array.isArray(d.ingredients) ? d.ingredients.join(' ') : (d.ingredients||'');
+          okQ = ing.toLowerCase().includes(q);
+        } else if(curSearchTab==='effect'){
+          const eff = Array.isArray(d.effects) ? d.effects.join(' ') : (d.effects||'');
+          okQ = eff.toLowerCase().includes(q);
+        }
+      }
       // era filter (OR among selected)
       let okE = true;
       if(selEras.length && selEras[0]!=='全部'){
@@ -1099,6 +1409,7 @@
   function setView(v){
     curView=v;
     if(v==='favs'){ sidebar.style.display='none'; renderFavs(); }
+    else if(v==='hist'){ sidebar.style.display='none'; renderHist(); }
     else { sidebar.style.display=''; render(); }
   }
 
@@ -1113,6 +1424,19 @@
     const favData=FAVS.map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
     favData.forEach(d=>{ g2.appendChild(makeCard(d,0)); });
     document.getElementById('cnt').innerHTML=`❤️ 收藏 <strong>${FAVS.length}</strong> 道菜`;
+  }
+
+  // ── Render browse history ──
+  function renderBrowseHist(){
+    curView='hist';
+    mainEl.innerHTML=`<div class="tags-bar"></div><div class="fav-hdr"><button class="fav-bk" id="bkBtn">← 返回</button><h2>📜 浏览历史</h2><span style="color:var(--mt);font-size:.875rem">${VIEW_HIST.length}条</span><button class="fav-clr" id="clrBtn">清空</button></div><div class="grd" id="grid2" role="list"></div><div class="emp" id="emp" style="display:${VIEW_HIST.length?'':'block'}"><div class="ic">📜</div><p>暂无浏览记录</p></div>`;
+    document.getElementById('bkBtn').onclick=()=>{ setMobTab('home'); setView('main'); apply(); };
+    document.getElementById('clrBtn').onclick=()=>{ if(VIEW_HIST.length&&confirm('确定清空浏览历史？')){ VIEW_HIST=[]; save('cbr_view_hist',[]); updateHistBadges(); updateHistBdg(); setMobTab('home'); setView('main'); apply(); }};
+    const g2=document.getElementById('grid2');
+    if(!VIEW_HIST.length) return;
+    const histData=VIEW_HIST.map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
+    histData.forEach(d=>{ g2.appendChild(makeCard(d,0)); });
+    document.getElementById('cnt').innerHTML=`📜 历史 <strong>${VIEW_HIST.length}</strong> 条`;
   }
 
   // ── Render ──
@@ -1158,9 +1482,10 @@
     const img=d.image?`<img src="${d.image}" alt="${d.name}" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML+='${ph}'">`:ph;
     const eraShort=d.era.split('·')[0].split('（')[0];
     const eraColor=ERA_COLORS[d.era]||'var(--c1)';
-    c.innerHTML=`<span class="fav">${isFaved(d.id)?'❤️':'🤍'}</span>
+    c.innerHTML=`<span class="fav${isFaved(d.id)?' favored':''}">${isFaved(d.id)?'⭐':'🤍'}</span>
       <div class="ci">${img}<span class="ci-tg">${eraShort}</span><span class="era-tag" style="background:${eraColor}">${d.era}</span><span class="ci-hv">查看详情</span></div>
       <div class="cb"><div class="cn">${d.name}</div><div class="cs">${cleanSource(d.source)||'来源待考'}</div><div class="cta">${(d.category.split(' ')[0])+' '+(d.category.split(' ')[1]||'')}</div></div>`;
+    c.querySelector('.fav').onclick=(e)=>{e.stopPropagation();e.preventDefault();toggleFav(d.id);};
     c.onclick=()=>openM(d.id);
     c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openM(d.id);}};
     return c;
@@ -1289,20 +1614,11 @@ ${ratingHtml}
   }
 
   // ── Event listeners ──
-  document.getElementById('srch').addEventListener('input',e=>{
-    curQ=e.target.value;
-    if(curView!=='main') setView('main');
-    document.querySelectorAll('#fltSrcBody input').forEach(inp=>inp.checked=inp.dataset.word===curQ);
-    updateFilterCount('src');
-    addHist(curQ);
-    apply();
-  });
   document.getElementById('rnd').onclick=()=>{ if(filtered.length){ const ri=Math.floor(Math.random()*filtered.length); openM(filtered[ri].id); } };
   document.getElementById('mdX').onclick=closeM;
   mb.addEventListener('click',e=>{ if(e.target===mb) closeM(); });
   document.getElementById('mdPrev').addEventListener('click',()=>{ if(mIdx>0) openM(filtered[mIdx-1].id); });
   document.getElementById('mdNext').addEventListener('click',()=>{ if(mIdx<filtered.length-1) openM(filtered[mIdx+1].id); });
-  document.getElementById('favBtn').onclick=()=>setView('favs');
   document.getElementById('hdrTl').onclick=()=>{ clearAll(); setView('main'); apply(); };
   document.addEventListener('keydown',e=>{
     if(!mb.classList.contains('on')) return;
@@ -1555,6 +1871,8 @@ ${ratingHtml}
       md.classList.remove('transitioning'); void md.offsetWidth; md.classList.add('transitioning');
     }
     const prevIdx=mIdx; _origOpenM(id);
+    // 记录浏览历史
+    addViewHist(id);
     // 击磬（仅当开启音乐时）
     if(musicOn) playChime(id?.toString().split('').reduce((s,c)=>s+c.charCodeAt(0),0)||id);
     // 诗词+宜忌（在mdBd渲染后注入）
@@ -1643,7 +1961,7 @@ ${ratingHtml}
       selEras=['全部'];
       buildEraFilter(); buildTypeFilter(); buildCatFilter(); buildSrcFilter(); buildEffFilter();
       buildQuickBar();
-      render(); initDaily(); renderHist(); checkUrlParam();
+      render(); initDaily(); updateHistBadges(); updateHistBdg(); checkUrlParam();
     })
     .catch(err=>{
       document.getElementById('cnt').innerHTML='<strong style="color:red">加载失败: '+err.message+'</strong>';
