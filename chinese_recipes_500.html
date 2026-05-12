@@ -1,17 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<script>
-window.onerror = function(msg, src, line) {
-  var el = document.getElementById('__status_banner');
-  if(el) el.innerHTML = '❌ ERROR: ' + msg + ' (line:' + line + ')';
-  return true;
-};
-document.addEventListener('DOMContentLoaded', function() {
-  var el = document.getElementById('__status_banner');
-  if(el) el.innerHTML = '✅ DOMLoaded v5.1';
-});
-</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>中华美食千百道 v5.1</title>
@@ -416,9 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </style>
 </head>
 <body>
-<div id="__status_banner" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#fff;color:#000;font-size:20px;padding:12px;text-align:center;font-family:monospace;">
-  🔄 初始化中... v5.1
-</div>
+
 <div class="aurora"></div>
 <div class="dly" id="dly" role="button" tabindex="0" aria-label="每日推荐">
   <span class="dly-lbl">今日推荐</span>
@@ -1719,7 +1706,7 @@ document.addEventListener('DOMContentLoaded', function() {
         else if(chk.dataset.c) count = filtered.filter(d=>d.cuisine===key).length;
         const numSpan = label.querySelector('.cnt-num');
         if(numSpan) numSpan.textContent = count;
-        else label.innerHTML = label.innerHTML.replace(txt, txt) + \` <span class="cnt-num" style="color:var(--c3);font-size:.7em">(\${count})</span>\`;
+        else label.innerHTML = label.innerHTML.replace(txt, txt) + ` <span class="cnt-num" style="color:var(--c3);font-size:.7em">(${count})</span>`;
       });
     });
   }
@@ -2440,17 +2427,10 @@ const POEMS={
   const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
     ? './recipes_data.json'
     : 'https://raw.githubusercontent.com/lz2026km/ChineseRecipes500/gh-pages/recipes_data.json?v='+Date.now();
-  window.__sb = function(msg) {
-    var el = document.getElementById('__status_banner');
-    if(el) el.innerHTML = msg;
-  };
-  window.__sb('🔄 正在加载数据...');
-  fetch(DATA_URL)
-    .then(r=>{if(!r.ok) throw new Error('HTTP '+r.status); window.__sb('✅ 数据到达:'+r.status); return r.json();})
+fetch(DATA_URL)
+    .then(r=>{if(!r.ok) throw new Error('HTTP '+r.status); return r.json();})
     .then(d=>{
       DATA=d;
-      window.__sb('✅ JSON解析成功:'+d.length+'道菜，准备渲染...');
-      window.__loaded = d.length; window.__sb('✅ 渲染中...');
       CATS={};
       DATA.forEach(d=>{ const cat=d.category||'🍽️ 其他'; if(!CATS[cat]) CATS[cat]=[]; CATS[cat].push(d); });
       filtered=[...DATA];
@@ -2461,11 +2441,10 @@ const POEMS={
       initCarousel(); renderSeasonalItems();
     })
     .catch(err=>{
-      var el = document.getElementById('__status_banner');
-      if(el) el.innerHTML = '❌ 加载失败: '+err.message;
       document.getElementById('cnt').innerHTML='<strong style="color:red">加载失败: '+err.message+'</strong>';
       console.error(err);
     });
+  });
 })();
 </script>
 </body>
