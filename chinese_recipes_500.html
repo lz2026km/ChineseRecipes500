@@ -2416,22 +2416,19 @@ const POEMS={
   window.addEventListener('scroll', renderVisible, {passive:true});
   window.addEventListener('resize', renderVisible, {passive:true});
 
-  // ── Service Worker 先清理后注册 ──
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(async regs => {
-      for (const r of regs) await r.unregister();
-      console.log('Old SW unregistered');
-      await navigator.serviceWorker.register('./sw.js?t='+Date.now()+'&v=3').catch(()=>{});
-    });
-  }
+  // ── Service Worker 已禁用 ──
 
   // ── Init ──
   showSk();
-  // 本地开发用 ./recipes_data.json，生产环境用 raw.githubusercontent.com（绕过 GitHub Pages CDN 500KB 限制）
+  // 本地开发用 ./recipes_data.json，生产环境用 lz2026km.github.io
   const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
     ? './recipes_data.json'
-    : 'https://lz2026km.github.io/ChineseRecipes500/recipes_data.json?v='+Date.now();
-fetch(DATA_URL)
+    : 'https://lz2026km.github.io/ChineseRecipes500/recipes_data.json';
+  // 加5秒超时兜底，避免永远 pending
+  Promise.race([
+    fetch(DATA_URL + '?t=' + Date.now()),
+    new Promise((_, rj) => setTimeout(() => rj(new Error('数据加载超时（5秒）')), 5000))
+  ])
     .then(r=>{if(!r.ok) throw new Error('HTTP '+r.status); return r.json();})
     .then(d=>{
       DATA=d;
