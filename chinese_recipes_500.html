@@ -2454,5 +2454,119 @@ fetch(DATA_URL)
   });
 })();
 </script>
+
+<script>
+// ── Emergency fallback: if IIFE render didn't run, render manually ──
+(function emergencyRender() {
+  var attempts = 0;
+  var interval = setInterval(function() {
+    attempts++;
+    var grid = document.getElementById('grid');
+    var cnt = document.getElementById('cnt');
+    if (!grid || !cnt) return;
+    
+    // Check if already rendered
+    if (grid.querySelector('.card')) {
+      clearInterval(interval);
+      return;
+    }
+    
+    // DATA should be set by IIFE .then()
+    if (typeof DATA !== 'undefined' && DATA && DATA.length > 0) {
+      clearInterval(interval);
+      
+      // Set filtered if not already set
+      if (typeof filtered === 'undefined') {
+        filtered = DATA;
+      }
+      
+      // Set selEras for era filter
+      if (typeof selEras === 'undefined') {
+        selEras = ['全部'];
+      }
+      
+      // Build CATS if not already built
+      if (typeof CATS === 'undefined') {
+        CATS = {};
+        DATA.forEach(function(d) {
+          var cat = d.category || '🍽️ 其他';
+          if (!CATS[cat]) CATS[cat] = [];
+          CATS[cat].push(d);
+        });
+      }
+      
+      // Try to call render if it's defined
+      if (typeof render === 'function') {
+        try { render(); } catch(e) { console.error('render error:', e); }
+        return;
+      }
+      
+      // render not global - manually build grid
+      var ERA_COLORS = {
+        '先秦':'#8B4513','秦朝':'#A0522D','汉朝':'#CD853F','三国':'#D2691E',
+        '晋朝':'#DAA520','南北朝':'#B8860B','隋朝':'#D4A017','唐朝':'#E6A800',
+        '宋朝':'#FFD700','元朝':'#F0E68C','明朝':'#8B6914','清朝':'#A0522D',
+        '近现代':'#666666','其他':'#999999'
+      };
+      var CAT_ICONS = {
+        '凉菜':'🥗','热菜':'🍳','汤品':'🍲','主食':'🍚','小吃':'🍜',
+        '甜点':'🍰','饮品':'🥤','酱料':'🫙','其他':'🍽️'
+      };
+      
+      function isFaved(id) {
+        try {
+          var favs = JSON.parse(localStorage.getItem('cbr_favs') || '[]');
+          return favs.includes(id);
+        } catch(e) { return false; }
+      }
+      
+      function getSorted(arr) { return arr; }
+      
+      function makeCard(d, i) {
+        var c = document.createElement('article');
+        c.className = 'card' + (isFaved(d.id) ? ' favored' : '');
+        c.setAttribute('tabindex', '0');
+        c.dataset.i = i;
+        c.dataset.id = d.id;
+        var icon = CAT_ICONS[d.category] || '🍽️';
+        var ph = '<div class="ci-ph">' + icon + '</div>';
+        var img = d.image ? '<img src="' + d.image + '" alt="' + d.name + '" loading="lazy" decoding="async" onerror="this.style.display=\'none\';this.parentElement.innerHTML+=\'' + ph + '\'">' : ph;
+        var eraShort = (d.era || '其他').split('·')[0].split('（')[0];
+        var eraColor = ERA_COLORS[d.era] || 'var(--c1)';
+        c.innerHTML = '<span class="fav' + (isFaved(d.id) ? ' favored' : '') + '">' + (isFaved(d.id) ? '⭐' : '🤍') + '</span>\n      <div class="ci">' + img + '<span class="ci-tg">' + eraShort + '</span><span class="era-tag" style="background:' + eraColor + '">' + (d.era || '其他') + '</span><span class="ci-hv">查看详情</span></div>\n      <div class="cb"><div class="cn">' + d.name + '</div><div class="cs">' + ((d.cuisine || '') + ' ' + (d.source || '来源待考')) + '</div><div class="cta">' + ((d.category.split(' ')[0]) + ' ' + (d.category.split(' ')[1] || '')) + '</div></div>';
+        c.onclick = function() { window.openM && openM(d.id); };
+        return c;
+      }
+      
+      var displayList = getSorted(filtered);
+      cnt.innerHTML = '共 <strong>' + filtered.length + '</strong> 道菜';
+      
+      if (!filtered.length) {
+        grid.style.display = 'none';
+        var em = document.getElementById('emp');
+        if (em) em.style.display = 'block';
+        return;
+      }
+      
+      grid.style.display = '';
+      grid.innerHTML = '';
+      var _allCards = [];
+      displayList.forEach(function(d, i) {
+        var card = makeCard(d, i);
+        grid.appendChild(card);
+        _allCards.push(card);
+      });
+      
+      console.log('Emergency render: ' + filtered.length + ' cards rendered');
+    }
+    
+    if (attempts > 200) {
+      clearInterval(interval);
+      console.error('Emergency render timeout');
+    }
+  }, 50);
+})();
+</script>
+
 </body>
 </html>
