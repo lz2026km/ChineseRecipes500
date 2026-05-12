@@ -1,11 +1,12 @@
-/* 中华美食千百道 v3.5 Service Worker */
-const CACHE_NAME = 'cr-v35';
+/* 中华美食千百道 v5.1 Service Worker */
+const CACHE_NAME = 'cr-v51';
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request))
   );
 });
 self.addEventListener('install', e => {
+  self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME).then(c => c.addAll([
       '/ChineseRecipes500/',
@@ -13,4 +14,12 @@ self.addEventListener('install', e => {
       '/ChineseRecipes500/recipes_data.json'
     ]))
   );
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+    ))
+  );
+  self.clients.claim();
 });
