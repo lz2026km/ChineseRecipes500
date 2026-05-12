@@ -2450,6 +2450,7 @@ const POEMS={
     .then(d=>{
       DATA=d;
       window.__sb('✅ JSON解析成功:'+d.length+'道菜，准备渲染...');
+      alert('🎉 数据加载成功！共'+d.length+'道菜！');
       CATS={};
       DATA.forEach(d=>{ const cat=d.category||'🍽️ 其他'; if(!CATS[cat]) CATS[cat]=[]; CATS[cat].push(d); });
       filtered=[...DATA];
