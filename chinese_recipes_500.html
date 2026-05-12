@@ -2416,16 +2416,13 @@ const POEMS={
   window.addEventListener('scroll', renderVisible, {passive:true});
   window.addEventListener('resize', renderVisible, {passive:true});
 
-  // ── Service Worker 清理旧缓存 ──
+  // ── Service Worker 先清理后注册 ──
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(regs => {
-      regs.forEach(r => r.unregister());
+    navigator.serviceWorker.getRegistrations().then(async regs => {
+      for (const r of regs) await r.unregister();
       console.log('Old SW unregistered');
+      await navigator.serviceWorker.register('./sw.js?t='+Date.now()+'&v=3').catch(()=>{});
     });
-  }
-  // ── Service Worker 注册 D2 ──
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js?t='+Date.now()+'&v=2').catch(()=>{});
   }
 
   // ── Init ──
