@@ -2434,45 +2434,53 @@ const POEMS={
   const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
     ? './recipes_data.json'
     : './recipes_data.json';
-// 同步XHR加载（绕过异步fetch在某些环境下pending的问题）
-let jsonData;
-try {
-  const xhr = new XMLHttpRequest();
-  xhr.open('GET', DATA_URL, false);
-  xhr.send();
-  if(xhr.status !== 200) throw new Error('HTTP '+xhr.status);
-  jsonData = JSON.parse(xhr.responseText);
-} catch(e) {
-  try {
-    const xhr2 = new XMLHttpRequest();
-    xhr2.open('GET', './recipes_data.json', false);
-    xhr2.send();
-    if(xhr2.status !== 200) throw new Error('本地JSON加载失败: '+xhr2.status);
-    jsonData = JSON.parse(xhr2.responseText);
-  } catch(e2) {
-    document.getElementById('cnt').innerHTML='<strong style="color:red">加载失败: '+e2.message+'</strong>';
-    console.error(e2);
-    throw e2;
-  }
-}
-DATA=jsonData;
-CATS={};
-DATA.forEach(d=>{ const cat=d.category||'🍽️ 其他'; if(!CATS[cat]) CATS[cat]=[]; CATS[cat].push(d); });
-filtered=[...DATA];
-selEras=['全部'];
-try{buildEraFilter();}catch(e){console.error('buildEraFilter:',e);}
-try{buildTypeFilter();}catch(e){console.error('buildTypeFilter:',e);}
-try{buildCatFilter();}catch(e){console.error('buildCatFilter:',e);}
-try{buildSrcFilter();}catch(e){console.error('buildSrcFilter:',e);}
-try{buildEffFilter();}catch(e){console.error('buildEffFilter:',e);}
-try{buildQuickBar();}catch(e){console.error('buildQuickBar:',e);}
-try{render();}catch(e){console.error('render:',e);}
-try{initDaily();}catch(e){console.error('initDaily:',e);}
-try{updateHistBadges();}catch(e){console.error('updateHistBadges:',e);}
-try{updateHistBdg();}catch(e){console.error('updateHistBdg:',e);}
-try{checkUrlParam();}catch(e){console.error('checkUrlParam:',e);}
-try{initCarousel();}catch(e){console.error('initCarousel:',e);}
-try{renderSeasonalItems();}catch(e){console.error('renderSeasonalItems:',e);}
+  // async/await方式加载数据（避免Promise链在某些环境不触发.then()）
+  (async function() {
+    let jsonData;
+    try {
+      // 先尝试fetch
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      try {
+        const r = await fetch(DATA_URL, { signal: controller.signal });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        jsonData = await r.json();
+      } catch(e) {
+        console.warn('fetch失败/超时，改用XHR:', e.message);
+        clearTimeout(timeoutId);
+        // XHR兜底
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', DATA_URL, false);
+        xhr.send();
+        if (xhr.status !== 200) throw new Error('XHR ' + xhr.status);
+        jsonData = JSON.parse(xhr.responseText);
+      }
+      clearTimeout(timeoutId);
+    } catch(e) {
+      console.error('数据加载最终失败:', e);
+      document.getElementById('cnt').innerHTML = '<strong style="color:red">加载失败: ' + e.message + '</strong>';
+      return;
+    }
+    // 数据加载成功，初始化
+    window.DATA = jsonData;
+    window.CATS = {};
+    window.DATA.forEach(d => { const cat = d.category || '🍽️ 其他'; if (!window.CATS[cat]) window.CATS[cat] = []; window.CATS[cat].push(d); });
+    window.filtered = [...window.DATA];
+    window.selEras = ['全部'];
+    try { buildEraFilter(); } catch(e) { console.error('buildEraFilter:', e); }
+    try { buildTypeFilter(); } catch(e) { console.error('buildTypeFilter:', e); }
+    try { buildCatFilter(); } catch(e) { console.error('buildCatFilter:', e); }
+    try { buildSrcFilter(); } catch(e) { console.error('buildSrcFilter:', e); }
+    try { buildEffFilter(); } catch(e) { console.error('buildEffFilter:', e); }
+    try { buildQuickBar(); } catch(e) { console.error('buildQuickBar:', e); }
+    try { render(); } catch(e) { console.error('render:', e); }
+    try { initDaily(); } catch(e) { console.error('initDaily:', e); }
+    try { updateHistBadges(); } catch(e) { console.error('updateHistBadges:', e); }
+    try { updateHistBdg(); } catch(e) { console.error('updateHistBdg:', e); }
+    try { checkUrlParam(); } catch(e) { console.error('checkUrlParam:', e); }
+    try { initCarousel(); } catch(e) { console.error('initCarousel:', e); }
+    try { renderSeasonalItems(); } catch(e) { console.error('renderSeasonalItems:', e); }
+  })();
 })();
 </script>
 
