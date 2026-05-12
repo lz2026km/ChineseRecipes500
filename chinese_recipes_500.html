@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v3.5</title>
+  <title>中华美食千百道 v5.0</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -248,6 +248,8 @@
     .md-mg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
     .md-tg{font-size:.875rem;color:var(--mt);background:var(--bg);padding:3px 10px;border-radius:10px;border:1px solid var(--bd);transition:background .3s,color .3s}
     .md-tg.md-dif{color:var(--c3);border-color:var(--c3);font-size:1rem;letter-spacing:2px}
+    .md-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .md-tags .md-tg{margin:0}
     .md-src{font-style:italic;color:var(--c2)!important;border-left:3px solid var(--c3);padding-left:12px!important;background:linear-gradient(90deg,rgba(216,175,55,.06),transparent);border-radius:0 8px 8px 0}
     .md-sc{margin-bottom:20px}
     .md-sb{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--c3);border-left:3px solid var(--c3);padding-left:7px;margin-bottom:6px}
@@ -402,7 +404,7 @@
   <span class="dly-rhs" id="dlyRhs"></span>
 </div>
 <header class="hdr">
-  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v3.5</span></div>
+  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.0</span></div>
   <div class="srch-wrap">
     <div class="srch-tabs">
       <button class="srch-tab on" data-tab="name">菜名</button>
@@ -1814,6 +1816,7 @@ ${ratingHtml}
   <span class="md-tg">🔥 ${d.heat||'火候'}</span>
   <span class="md-tg">⏱️ ${d.duration||'时长'}</span>
   <span class="md-tg">🍳 ${d.utensils||'锅具'}</span>
+  ${d.calories?`<span class="md-tg">⚡${d.calories}千卡</span>`:''}
   <span class="md-tg md-dif">${stars}</span>
 </div>`;
     if(d.history) bd+=`<div class="md-sc"><div class="md-sb">历史背景</div><p class="md-tx">${highlightHistory(d.history)}</p></div>`;
@@ -1835,7 +1838,12 @@ ${ratingHtml}
         ${stpHtml}`;
     }
     if(d.tips) bd+=`<div class="md-sc"><div class="md-sb">烹饪要点</div><p class="md-tx sm">💡 ${stripMd(Array.isArray(d.tips)?d.tips.join(''):d.tips||'')}</p></div>`;
-    if(d.sourceText) bd+=`<div class="md-sc"><div class="md-sb">📜 古籍原文</div><p class="md-tx sm md-src">"${stripMd(Array.isArray(d.sourceText)?d.sourceText.join(''):d.sourceText||'')}"</p></div>`;
+    if(d.sourceText) bd+=`<div class="md-sc"><div class="md-sb">📜 古籍原文</div><p class="md-tx sm md-src">"${stripMd(Array.isArray(d.sourceText)?d.sourceText.join(''):d.sourceText||'').replace(/"/g,'"').substring(0,300)}"</p></div>`;
+    // ── v5.0 新增字段区块 ──
+    if(d.nutritionTags&&d.nutritionTags.length) bd+=`<div class="md-sc"><div class="md-sb">🏷️ 营养标签</div><div class="md-tags">${d.nutritionTags.map(t=>`<span class="md-tg" style="background:var(--c3);color:#fff">${t}</span>`).join('')}</div></div>`;
+    if(d.suitable&&d.suitable.length) bd+=`<div class="md-sc"><div class="md-sb">👥 适宜人群</div><div class="md-tags">${d.suitable.map(s=>`<span class="md-tg" style="background:var(--c2)">${s}</span>`).join('')}</div></div>`;
+    if(d.allergens&&d.allergens.length) bd+=`<div class="md-sc"><div class="md-sb">⚠️ 过敏原提示</div><div class="md-tags">${d.allergens.map(a=>`<span class="md-tg" style="background:#e53935;color:#fff">${a}</span>`).join('')}</div></div>`;
+    if(d.source) bd+=`<div class="md-sc"><div class="md-sb">📖 出处来源</div><p class="md-tx sm">📚 ${cleanSource(d.source)||d.source||''}</p></div>`;
     // Related recipes
     const rels=DATA.filter(x=>x.id!==d.id&&(x.category===d.category||x.era===d.era)).slice(0,3);
     if(rels.length){
@@ -1886,7 +1894,8 @@ ${ratingHtml}
       const calcNote=document.getElementById('calcNote');
       const ingDisplay=document.getElementById('ingredientsDisplay');
       if(!calcInput||!calcApply||!ingDisplay) return;
-      const origIngredients=Array.isArray(d.ingredients)?d.ingredients.join('\n'):stripMd(d.ingredients||'');
+      const stdIng=d.standardizedIngredients||'';
+      const origIngredients=stdIng||(Array.isArray(d.ingredients)?d.ingredients.join('\n'):stripMd(d.ingredients||''));
       function renderIngredients(n){
         if(n<=1){
           ingDisplay.innerHTML=`<p class="md-tx">${origIngredients}</p>`;
