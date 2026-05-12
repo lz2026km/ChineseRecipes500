@@ -2425,12 +2425,10 @@ const POEMS={
   // 本地开发用 ./recipes_data.json，生产环境用 raw.githubusercontent.com（绕过 GitHub Pages CDN 500KB 限制）
   const DATA_URL = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
     ? './recipes_data.json'
-    : './recipes_data.json';
-  alert('v5.1开始加载数据...');
+    : 'https://raw.githubusercontent.com/lz2026km/ChineseRecipes500/gh-pages/recipes_data.json';
   fetch(DATA_URL)
-    .then(r=>{if(!r.ok) throw new Error('Failed to load'); alert('数据接收成功:'+r.status);return r.json();})
+    .then(r=>{if(!r.ok) throw new Error('Failed to load'); return r.json();})
     .then(d=>{
-      alert('JSON解析成功:'+d.length+'道菜');
       DATA=d;
       CATS={};
       DATA.forEach(d=>{ const cat=d.category||'🍽️ 其他'; if(!CATS[cat]) CATS[cat]=[]; CATS[cat].push(d); });
@@ -2442,7 +2440,6 @@ const POEMS={
       initCarousel(); renderSeasonalItems();
     })
     .catch(err=>{
-      alert('加载失败:'+err.message);
       document.getElementById('cnt').innerHTML='<strong style="color:red">加载失败: '+err.message+'</strong>';
       console.error(err);
     });
