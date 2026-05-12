@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v5.0</title>
+  <title>中华美食千百道 v5.1</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -153,6 +153,14 @@
     .card{background:var(--sf);border-radius:12px;box-shadow:0 2px 12px var(--sh);overflow:hidden;cursor:pointer;transition:transform .25s,box-shadow .25s,background .3s;border:1px solid var(--bd);outline:none;position:relative}
     .card::after{content:'';position:absolute;inset:0;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(139,115,85,.15);pointer-events:none}
     .card:hover{transform:translateY(-4px);box-shadow:0 8px 24px var(--sh)}
+    .cards.list-view{display:flex;flex-direction:column;gap:8px}
+    .cards.list-view .card{flex-direction:row;min-height:100px}
+    .cards.list-view .card-img{width:100px;height:100px;flex-shrink:0}
+    .cards.list-view .card-body{flex:1;padding:12px}
+    .view-btn{width:32px;height:32px;border-radius:6px;background:var(--bg);border:1px solid var(--bd);cursor:pointer;font-size:.9rem;color:var(--mt);transition:all .2s}
+    .view-btn.active{background:var(--c1);color:#fff;border-color:var(--c1)}
+    .result-count{display:inline-block;min-width:40px;text-align:right}
+    #backToTop{align-items:center;justify-content:center}
     .card:focus-visible{outline:3px solid var(--season-accent,var(--c3));outline-offset:2px}
     /* ── 虚拟滚动 ── */
     .grdV{position:relative}
@@ -404,7 +412,7 @@
   <span class="dly-rhs" id="dlyRhs"></span>
 </div>
 <header class="hdr">
-  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.0</span></div>
+  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.1</span></div>
   <div class="srch-wrap">
     <div class="srch-tabs">
       <button class="srch-tab on" data-tab="name">菜名</button>
@@ -433,6 +441,7 @@
 </div>
 <div class="stbar" id="stbar">
   <span class="stbar-lbl">🌱 节气</span>
+  <span id="termCountdown" style="margin-left:8px;font-size:.75rem;color:var(--c3)"></span>
   <div id="stChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
 </div>
 <div class="fstbar" id="fstbar">
@@ -457,6 +466,10 @@
     <button class="srt-btn" data-s="era">按朝代</button>
     <button class="srt-btn" data-s="type">按类型</button>
     <button class="srt-btn" data-s="rnd">随机</button>
+  </div>
+  <div class="view-toggle" style="display:flex;gap:4px;align-items:center;margin-left:8px">
+    <button class="view-btn active" id="viewGrid" title="网格视图">▦</button>
+    <button class="view-btn" id="viewList" title="列表视图">☰</button>
   </div>
 </div>
 <div class="ly">
@@ -529,8 +542,15 @@
         <button class="hdr-btn" id="mdFav" title="收藏" style="width:32px;height:32px;font-size:1rem">🤍</button>
         <button class="md-x" id="mdX" aria-label="关闭">✕</button>
       </div>
+      <button id="exportFavBtn" title="导出收藏" style="position:absolute;top:10px;right:50px;background:var(--bg);border:1px solid var(--bd);padding:3px 10px;border-radius:8px;font-size:.75rem;cursor:pointer;z-index:1">📤导出</button>
     </div>
     <div class="md-h" id="mdH"></div>
+    <div class="fav-cat-tabs" id="favCatTabs" style="display:flex;gap:8px;padding:8px 16px;border-bottom:1px solid var(--bd);overflow-x:auto;flex-shrink:0">
+      <button class="fav-cat-tab active" data-cat="all" style="padding:4px 12px;border-radius:16px;border:1px solid var(--bd);background:var(--bg);font-size:.8rem;cursor:pointer">全部</button>
+      <button class="fav-cat-tab" data-cat="home" style="padding:4px 12px;border-radius:16px;border:1px solid var(--bd);background:var(--bg);font-size:.8rem;cursor:pointer">家常</button>
+      <button class="fav-cat-tab" data-cat="guest" style="padding:4px 12px;border-radius:16px;border:1px solid var(--bd);background:var(--bg);font-size:.8rem;cursor:pointer">宴客</button>
+      <button class="fav-cat-tab" data-cat="festival" style="padding:4px 12px;border-radius:16px;border:1px solid var(--bd);background:var(--bg);font-size:.8rem;cursor:pointer">节日</button>
+    </div>
     <div class="md-bd" id="mdBd"></div>
     <div class="md-nav">
       <button class="md-nav-btn" id="mdPrev">← 上一道</button>
@@ -1073,12 +1093,29 @@
     document.getElementById('clearSrch').classList.toggle('on', !!srchEl.value.length);
     if(!q){ srchHistEl.classList.remove('on'); srchHistEl.innerHTML=''; curQ=''; apply(); return; }
     // Smart suggestion: match recipe names
-    const matches = DATA.filter(d=>d.name.toLowerCase().includes(q)).slice(0,8);
+    // Pinyin index for smart search
+    function pinyinMatch(name, q) {
+      const py = window.__PY__ || {};
+      const namePy = py[name] || '';
+      return name.toLowerCase().includes(q) || namePy.includes(q) || q.split('').every(c => namePy.includes(c));
+    }
+    const matches = DATA.filter(d=>pinyinMatch(d.name,q)).slice(0,8);
+    // Typo correction: build alias map
+    const CORRECTIONS = {'东波肉':'东坡肉','北京烤':'北京烤鸭','麻婆':'麻婆豆腐','佛跳':'佛跳墙'};
+    let correctedQ = CORRECTIONS[q] || q;
+    const icon = d=>CAT_ICONS[d.category]||'🍽️';
+    let html = matches.map(d=>{
     const icon = d=>CAT_ICONS[d.category]||'🍽️';
     let html = matches.map(d=>{
       const nm = d.name.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&')})`,'gi'),'<mark>$1</mark>');
       return `<div class="srch-hi" data-q="${d.name}" data-id="${d.id}">${icon(d)} ${nm}<span style="margin-left:auto;font-size:.7rem;color:var(--mt)">${d.era.split('·')[0]}</span></div>`;
     }).join('');
+    // Hot searches from HIST (most frequent)
+    if(!matches.length && q.length >= 2){
+      const hot = HIST.slice(0,5).filter(h=>h.toLowerCase().startsWith(q));
+      if(hot.length) html += `<div class="srch-hi" style="color:var(--c3);font-size:.75rem">🔥 搜"<b>\${q}</b>"试试:</div>`;
+      hot.forEach(h=>{ html+=`<div class="srch-hi" data-q="\${h}">🔍 \${h}<span style="margin-left:auto;color:var(--mt);font-size:.7rem">历史</span></div>`; });
+    }
     if(matches.length){ html += `<div class="srch-hi" style="color:var(--mt);font-size:.75rem;border-top:1px solid var(--bd)" id="srchApply">↩ 搜索 "${srchEl.value}"（${matches.length}道）</div>`; }
     srchHistEl.innerHTML = html;
     srchHistEl.classList.add('on');
@@ -1652,6 +1689,25 @@
     showCover = !curQ && selEras[0]==='全部' && !selTypes.length && !selCats.length && !selCuisines.length && !curSolarTerm && !curFestival && !selEffects.length;
     renderTags();
     render();
+    // Update result count
+    const cntEl = document.getElementById('resultCount');
+    if(cntEl) cntEl.textContent = filtered.length;
+    // Update filter badge counts
+    document.querySelectorAll('.flt-body').forEach(body=>{
+      body.querySelectorAll('.flt-chk').forEach(chk=>{
+        const label = chk.closest('label');
+        if(!label) return;
+        const txt = label.textContent.replace(/\d+/g,'').trim();
+        const key = chk.dataset.t || chk.dataset.e || chk.dataset.c || chk.dataset.era || '';
+        let count = 0;
+        if(chk.dataset.t) count = filtered.filter(d=>d.category===key).length;
+        else if(chk.dataset.e) count = filtered.filter(d=>d.era===key).length;
+        else if(chk.dataset.c) count = filtered.filter(d=>d.cuisine===key).length;
+        const numSpan = label.querySelector('.cnt-num');
+        if(numSpan) numSpan.textContent = count;
+        else label.innerHTML = label.innerHTML.replace(txt, txt) + \` <span class="cnt-num" style="color:var(--c3);font-size:.7em">(\${count})</span>\`;
+      });
+    });
   }
 
   // ── Daily recommended ──
@@ -1770,7 +1826,7 @@
     c.dataset.i=i; c.dataset.id=d.id;
     const icon=CAT_ICONS[d.category]||'🍽️';
     const ph=`<div class="ci-ph">${icon}</div>`;
-    const img=d.image?`<img src="${d.image}" alt="${d.name}" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML+='${ph}'">`:ph;
+    const img=d.image?`<img src="${d.image}" alt="${d.name}" loading="lazy" decoding="async" onerror="this.style.display='none';this.parentElement.innerHTML+='${ph}'">`:ph;
     const eraShort=d.era.split('·')[0].split('（')[0];
     const eraColor=ERA_COLORS[d.era]||'var(--c1)';
     c.innerHTML=`<span class="fav${isFaved(d.id)?' favored':''}">${isFaved(d.id)?'⭐':'🤍'}</span>
@@ -1833,7 +1889,7 @@ ${ratingHtml}
     if(d.steps){
       const stps=(Array.isArray(d.steps)?d.steps:d.steps.split('\n')).filter(s=>s.trim());
       const stpHtml=stps.map((s,i)=>`<div class="stp"><span class="sn">${i+1}</span><span class="md-tx" style="font-size:1rem">${s.replace(/^\d+\.\s*/,'')}</span></div>`).join('');
-      bd+=`<div class="md-sc"><div class="stp-hdr"><span class="md-sb" style="border:none;padding:0;font-size:.85rem">详细步骤</span><span style="font-size:.75rem;color:var(--mt)">第${mIdx+1}步/共${stps.length}步</span></div>
+      bd+=`<div class="md-sc"><div class="stp-hdr"><span class="md-sb" style="border:none;padding:0;font-size:.85rem">详细步骤</span><button class="stp-timer-btn" id="stpTimerBtn" style="margin-left:auto;font-size:.75rem;background:var(--c2);color:#fff;border:none;padding:3px 10px;border-radius:10px;cursor:pointer">⏱️ 步骤计时</button><span style="font-size:.75rem;color:var(--mt)">第${mIdx+1}步/共${stps.length}步</span></div>
         <div class="stp-prog"><div class="stp-bar" style="width:${Math.round(100/stps.length*1)}%"></div></div>
         ${stpHtml}`;
     }
@@ -1893,6 +1949,27 @@ ${ratingHtml}
       const calcApply=document.getElementById('calcApply');
       const calcNote=document.getElementById('calcNote');
       const ingDisplay=document.getElementById('ingredientsDisplay');
+      // Difficulty version toggle (家常版/宴客版)
+      const origPersons = {home:1, guest:4};
+      const servings = origPersons[window.__difficultyMode__||'home'] || 1;
+      const diffHtml = `<div style="margin-bottom:10px;display:flex;gap:8px">
+        <button class="diff-btn \${window.__difficultyMode__!=='guest'?'active':''}" data-diff="home" style="flex:1;padding:6px;border-radius:8px;border:1px solid var(--bd);background:\${window.__difficultyMode__!=='guest'?'var(--c1)':'var(--bg)'};color:\${window.__difficultyMode__!=='guest'?'#fff':'var(--tx)'};cursor:pointer">家常版(1人)</button>
+        <button class="diff-btn" data-diff="guest" style="flex:1;padding:6px;border-radius:8px;border:1px solid var(--bd);background:\${window.__difficultyMode__==='guest'?'var(--c1)':'var(--bg)'};color:\${window.__difficultyMode__==='guest'?'#fff':'var(--tx)'};cursor:pointer">宴客版(4人)</button>
+      </div>`;
+      ingDisplay.insertAdjacentHTML('beforebegin', diffHtml);
+      document.querySelectorAll('.diff-btn').forEach(btn=>{
+        btn.onclick = () => {
+          window.__difficultyMode__ = btn.dataset.diff;
+          document.querySelectorAll('.diff-btn').forEach(b => {
+            const isActive = b.dataset.diff === (window.__difficultyMode__||'home');
+            b.style.background = isActive ? 'var(--c1)' : 'var(--bg)';
+            b.style.color = isActive ? '#fff' : 'var(--tx)';
+          });
+          const persons = origPersons[window.__difficultyMode__] || 1;
+          calcInput.value = persons;
+          renderIngredients(persons);
+        };
+      });
       if(!calcInput||!calcApply||!ingDisplay) return;
       const stdIng=d.standardizedIngredients||'';
       const origIngredients=stdIng||(Array.isArray(d.ingredients)?d.ingredients.join('\n'):stripMd(d.ingredients||''));
@@ -1920,6 +1997,27 @@ ${ratingHtml}
       calcApply.onclick=()=>renderIngredients(parseInt(calcInput.value)||1);
       // init
       renderIngredients(1);
+      // Step timer
+      const timerBtn = document.getElementById('stpTimerBtn');
+      if(timerBtn){
+        let timerRunning = false, timerSeconds = 0, timerInterval = null;
+        timerBtn.onclick = () => {
+          if(!timerRunning){
+            timerRunning = true; timerSeconds = 0;
+            timerBtn.textContent = '⏸ 0:00';
+            timerInterval = setInterval(() => {
+              timerSeconds++;
+              const m = Math.floor(timerSeconds/60), s = timerSeconds%60;
+              timerBtn.textContent = '⏸ ' + m + ':' + String(s).padStart(2,'0');
+            }, 1000);
+          } else {
+            timerRunning = false; clearInterval(timerInterval);
+            const m = Math.floor(timerSeconds/60), s = timerSeconds%60;
+            timerBtn.textContent = '✅ ' + m + ':' + String(s).padStart(2,'0') + ' 已计时';
+            setTimeout(() => { timerBtn.textContent = '⏱️ 步骤计时'; }, 3000);
+          }
+        };
+      }
     },50);
   }
 
@@ -1964,6 +2062,10 @@ ${ratingHtml}
     if(e.key==='Escape') closeM();
     if(e.key==='ArrowLeft'){if(mIdx>0) openM(filtered[mIdx-1].id);}
     if(e.key==='ArrowRight'){if(mIdx<filtered.length-1) openM(filtered[mIdx+1].id);}
+    if(e.key==='j'||e.key==='ArrowDown'){if(mIdx<filtered.length-1) openM(filtered[mIdx+1].id);}
+    if(e.key==='k'||e.key==='ArrowUp'){if(mIdx>0) openM(filtered[mIdx-1].id);}
+    if(e.key==='f') toggleFav(filtered[mIdx]?.id);
+    if(e.key==='o'||e.key==='Enter') closeM();
   });
 
   // ── Background Music Engine (v2.1) ──
@@ -2169,7 +2271,20 @@ ${ratingHtml}
   }
 
   // 古诗词库（按朝代/类别关联）
-  const POEMS={
+  // Five elements health (v5.1)
+const WUXING={
+  '木':'春季养肝・宜绿色蔬菜、豆类・少酸多甘',
+  '火':'夏季养心・宜红色食物、苦味・少辣多苦',
+  '土':'长夏养脾・宜黄色食物、甘味・少油腻多清淡',
+  '金':'秋季养肺・宜白色食物、辛味・少辛辣多酸甜',
+  '水':'冬季养肾・宜黑色食物、咸味・少咸多温热',
+};
+function getWuXing(season){
+  const map={'春':'木','夏':'火','长夏':'土','秋':'金','冬':'水'};
+  return WUXING[map[season]||'土']||'均衡养生';
+}
+
+const POEMS={
     '先秦汉魏晋':{title:'《诗经·大雅》',text:'关关雎鸠，在河之洲。窈窕淑女，君子好逑。'},
     '唐代':{title:'《悯农》',text:'锄禾日当午，汗滴禾下土。谁知盘中餐，粒粒皆辛苦。'},
     '宋代':{title:'《食粥》',text:'世人个个学长年，不悟长年在目前。我得宛丘平易法，只得忧游太古前。'},
@@ -2285,6 +2400,18 @@ ${ratingHtml}
   document.addEventListener('touchmove',()=>{ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } });
 
   // ── 虚拟滚动滚动监听 D1 ──
+  window.addEventListener('scroll', () => {
+    const btn = document.getElementById('backToTop');
+    if(btn) btn.style.display = window.scrollY > 600 ? 'flex' : 'none';
+  }, {passive:true});
+  document.getElementById('backToTop')?.addEventListener('click', () => window.scrollTo({top:0,behavior:'smooth'}));
+  function showToast(msg, duration=2000) {
+    const t = document.getElementById('toast');
+    if(!t) return;
+    t.textContent = msg; t.style.display = 'block'; t.style.opacity = '1';
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.style.display = 'none', 300); }, duration);
+  }
   window.addEventListener('scroll', renderVisible, {passive:true});
   window.addEventListener('resize', renderVisible, {passive:true});
 
