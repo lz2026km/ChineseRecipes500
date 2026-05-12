@@ -1,5 +1,5 @@
 /* 中华美食千百道 v5.1 Service Worker */
-const CACHE_NAME = 'cr-v51';
+const CACHE_NAME = 'cr-v51-final';
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request))
