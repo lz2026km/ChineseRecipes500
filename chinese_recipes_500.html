@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v5.0</title>
+  <title>中华美食千百道 v5.2</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -108,27 +108,54 @@
 
     .btn-rnd{height:38px;padding:0 16px;background:var(--c1);color:#fff;border:none;border-radius:19px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s,transform .15s}
     .btn-rnd:hover{background:#a8442e;transform:scale(1.03)}
+    /* Mobile filter button */
+    .btn-mob-filter{display:none;height:38px;padding:0 14px;background:var(--bg);color:var(--tx);border:1.5px solid var(--bd);border-radius:19px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s}
+    .btn-mob-filter:hover{border-color:var(--c1);color:var(--c1)}
+    .btn-mob-filter.on{background:var(--c1);color:#fff;border-color:var(--c1)}
+    @media(min-width:641px){.btn-mob-filter{display:none!important}}
+    /* Mobile filter overlay */
+    .mob-filter-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;opacity:0;transition:opacity .25s}
+    .mob-filter-overlay.on{display:block;opacity:1}
+    /* Mobile filter panel */
+    .mob-filter-panel{position:fixed;bottom:0;left:0;right:0;background:var(--sf);z-index:200;border-radius:20px 20px 0 0;box-shadow:0 -4px 30px rgba(0,0,0,.2);transform:translateY(100%);transition:transform .3s ease;max-height:75vh;display:flex;flex-direction:column}
+    .mob-filter-panel.on{transform:translateY(0)}
+    .mfp-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--bd);flex-shrink:0}
+    .mfp-tl{font-size:1.1rem;font-weight:700;color:var(--tx)}
+    .mfp-close{width:32px;height:32px;border:none;background:var(--bg);border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s}
+    .mfp-close:hover{background:var(--bd)}
+    .mfp-body{flex:1;overflow-y:auto;padding:16px 20px}
+    .mfp-section{margin-bottom:20px}
+    .mfp-sec-hdr{font-size:14px;font-weight:700;color:var(--tx);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+    .mfp-chips{display:flex;flex-wrap:wrap;gap:8px}
+    .mfp-chip{padding:6px 14px;border-radius:16px;font-size:13px;cursor:pointer;border:1.5px solid var(--bd);background:var(--sf);color:var(--tx);transition:all .12s}
+    .mfp-chip:hover{border-color:var(--c1);color:var(--c1)}
+    .mfp-chip.on{background:var(--c1);color:#fff;border-color:var(--c1)}
+    .mfp-ftr{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--bd);flex-shrink:0}
+    .mfp-reset{flex:1;height:44px;border:1.5px solid var(--bd);background:var(--sf);border-radius:22px;font-size:.9rem;cursor:pointer;color:var(--tx);transition:all .12s}
+    .mfp-reset:hover{border-color:var(--c1);color:var(--c1)}
+    .mfp-apply{flex:2;height:44px;background:var(--c1);color:#fff;border:none;border-radius:22px;font-size:.9rem;font-weight:700;cursor:pointer;transition:background .12s}
+    .mfp-apply:hover{background:#a8442e}
 
     /* ── Layout ── */
     .ly{display:flex;min-height:calc(100vh - 66px - 42px)}
 
     /* ── Sidebar — 4-dim filter panels ── */
     .sd{width:190px;min-width:190px;background:var(--sf);border-right:1px solid var(--bd);padding:12px 10px;position:sticky;top:66px;height:calc(100vh - 66px);overflow-y:auto;transition:background .3s}
-    .flt-hdr{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border:none;background:transparent;width:100%;cursor:pointer;color:var(--tx);font-size:.8rem;font-weight:700;border-radius:6px;transition:background .12s;margin-bottom:4px}
+    .flt-hdr{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border:none;background:transparent;width:100%;cursor:pointer;color:var(--tx);font-size:16px;font-weight:700;border-radius:6px;transition:background .12s;margin-bottom:4px}
     .flt-hdr:hover{background:var(--bg)}
     .flt-hdr.on{background:var(--c1);color:#fff}
     .flt-hdr .flt-lbl{display:flex;align-items:center;gap:5px}
-    .flt-hdr .flt-count{font-size:.65rem;background:var(--bd);color:var(--mt);padding:1px 5px;border-radius:8px;min-width:18px;text-align:center}
+    .flt-hdr .flt-count{font-size:11px;background:var(--bd);color:var(--mt);padding:1px 5px;border-radius:8px;min-width:18px;text-align:center}
     .flt-hdr.on .flt-count{background:rgba(255,255,255,.3);color:#fff}
     .flt-hdr .arr{font-size:.7rem;transition:transform .2s}
     .flt-hdr.on .arr{transform:rotate(180deg)}
     .flt-body{display:none;margin-bottom:10px}
     .flt-body.on{display:block}
-    .flt-body label{display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;border-radius:5px;font-size:.78rem;color:var(--tx);transition:background .1s;margin-bottom:1px}
+    .flt-body label{display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;border-radius:5px;font-size:13px;color:var(--tx);transition:background .1s;margin-bottom:1px}
     .flt-body label:hover{background:var(--bg)}
     .flt-body label input{margin:0;accent-color:var(--c1);width:13px;height:13px;cursor:pointer}
     .flt-body label span{flex:1}
-    .flt-body label .lnum{font-size:.7rem;color:var(--mt)}
+    .flt-body label .lnum{font-size:11px;color:var(--mt)}
 
     /* ── Main ── */
     .mn{flex:1;padding:20px}
@@ -393,7 +420,8 @@
       .srch-tab{padding:3px 8px}
       .hdr-btn:not(#favBtn):not(#themeBtn):not(#musicBtn){display:none}
       .btn-rnd{display:none}
-    }
+      .btn-mob-filter{display:flex!important;align-items:center;gap:4px}
+      .mob-tab-bar{display:flex}
   </style>
 </head>
 <body>
@@ -404,7 +432,7 @@
   <span class="dly-rhs" id="dlyRhs"></span>
 </div>
 <header class="hdr">
-  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.0</span></div>
+  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.2</span></div>
   <div class="srch-wrap">
     <div class="srch-tabs">
       <button class="srch-tab on" data-tab="name">菜名</button>
@@ -426,6 +454,7 @@
     <button class="hdr-btn music-btn" id="musicBtn" title="背景音乐" aria-label="背景音乐">🎵</button>
   </div>
   <button class="btn-rnd" id="rnd">🎲 随便看看</button>
+  <button class="btn-mob-filter" id="mobFilterBtn" aria-label="打开筛选面板">🔍 筛选</button>
 </header>
 <!-- 音波动画 -->
 <div class="wave-wrap" id="waveWrap" style="display:none">
@@ -461,7 +490,6 @@
 </div>
 <div class="ly">
   <nav class="sd" id="sidebar" aria-label="四维筛选">
-    <!-- 时令推荐 -->
     <div class="seasonal-hdr" id="seasonalHdr">
       <span class="seasonal-icon">🌿</span>
       <span class="seasonal-tl" id="seasonalTl">时令推荐</span>
@@ -521,6 +549,19 @@
     <div class="grd" id="grid" role="list"></div>
     <div class="emp" id="emp" style="display:none"><div class="ic">🍽️</div><p>未找到相关菜谱</p></div>
   </main>
+</div>
+<!-- Mobile Filter Overlay & Panel v5.2 -->
+<div class="mob-filter-overlay" id="mobFilterOverlay"></div>
+<div class="mob-filter-panel" id="mobFilterPanel">
+  <div class="mfp-hdr">
+    <span class="mfp-tl">🔍 筛选</span>
+    <button class="mfp-close" id="mobFilterClose">✕</button>
+  </div>
+  <div class="mfp-body" id="mobFilterBody"></div>
+  <div class="mfp-ftr">
+    <button class="mfp-reset" id="mobFilterReset">重置</button>
+    <button class="mfp-apply" id="mobFilterApply">应用筛选</button>
+  </div>
 </div>
 <div class="mb" id="mb" role="dialog" aria-modal="true" aria-label="菜谱详情">
   <div class="md" id="md">
@@ -1520,6 +1561,77 @@
   setupFilterPanel('fltCatHdr','fltCatBody');
   setupFilterPanel('fltSrcHdr','fltSrcBody');
 
+  // ── Mobile Filter Panel v5.2 ──
+  const mobFilterBtn = document.getElementById('mobFilterBtn');
+  const mobFilterPanel = document.getElementById('mobFilterPanel');
+  const mobFilterOverlay = document.getElementById('mobFilterOverlay');
+  const mobFilterClose = document.getElementById('mobFilterClose');
+  const mobFilterReset = document.getElementById('mobFilterReset');
+  const mobFilterApply = document.getElementById('mobFilterApply');
+  const mobFilterBody = document.getElementById('mobFilterBody');
+  let mobSelEras = [], mobSelTypes = [], mobSelCats = [];
+
+  function openMobFilter(){
+    mobSelEras = [...selEras];
+    mobSelTypes = [...selTypes];
+    mobSelCats = [...selCats];
+    renderMobFilterBody();
+    mobFilterPanel.classList.add('on');
+    mobFilterOverlay.classList.add('on');
+    mobFilterBtn.classList.add('on');
+    document.body.style.overflow='hidden';
+  }
+  function closeMobFilter(){
+    mobFilterPanel.classList.remove('on');
+    mobFilterOverlay.classList.remove('on');
+    mobFilterBtn.classList.remove('on');
+    document.body.style.overflow='';
+  }
+  function renderMobFilterBody(){
+    const eraCnt = {}; DATA.forEach(d=>{ eraCnt[d.era]=(eraCnt[d.era]||0)+1; });
+    const typeCnt = {}; DATA.forEach(d=>{ const t=d.type.split(' ')[0]; typeCnt[t]=(typeCnt[t]||0)+1; });
+    const catCnt = {}; DATA.forEach(d=>{ const c=d.cat.split(' ')[0]; catCnt[c]=(catCnt[c]||0)+1; });
+    const eras = [...new Set(DATA.map(d=>d.era))].sort();
+    const types = [...new Set(DATA.map(d=>d.type.split(' ')[0]))].sort();
+    const cats = [...new Set(DATA.map(d=>d.cat.split(' ')[0]))].sort();
+    let h = '<div class="mfp-section">';
+    h += '<div class="mfp-sec-hdr">📅 朝代</div><div class="mfp-chips">';
+    eras.forEach(e=>{ const on=mobSelEras.includes(e); h+=`<span class="mfp-chip${on?' on':''}" data-mtype="era" data-mval="${e}">${e} (${eraCnt[e]||0})</span>`; });
+    h += '</div></div>';
+    h += '<div class="mfp-section">';
+    h += '<div class="mfp-sec-hdr">🍖 食材分类</div><div class="mfp-chips">';
+    types.forEach(t=>{ const on=mobSelTypes.includes(t); h+=`<span class="mfp-chip${on?' on':''}" data-mtype="type" data-mval="${t}">${TYPE_ICONS[t]||'🍽️'} ${t} (${typeCnt[t]||0})</span>`; });
+    h += '</div></div>';
+    h += '<div class="mfp-section">';
+    h += '<div class="mfp-sec-hdr">🏆 菜系</div><div class="mfp-chips">';
+    cats.forEach(c=>{ const on=mobSelCats.includes(c); h+=`<span class="mfp-chip${on?' on':''}" data-mtype="cat" data-mval="${c}">${c} (${catCnt[c]||0})</span>`; });
+    h += '</div></div>';
+    mobFilterBody.innerHTML = h;
+    mobFilterBody.querySelectorAll('.mfp-chip').forEach(chip=>{
+      chip.onclick=()=>{
+        const mt=chip.dataset.mtype, mv=chip.dataset.mval;
+        if(mt==='era'){
+          if(mobSelEras.includes(mv)) mobSelEras=mobSelEras.filter(e=>e!==mv); else mobSelEras.push(mv);
+        } else if(mt==='type'){
+          if(mobSelTypes.includes(mv)) mobSelTypes=mobSelTypes.filter(t=>t!==mv); else mobSelTypes.push(mv);
+        } else {
+          if(mobSelCats.includes(mv)) mobSelCats=mobSelCats.filter(c=>c!==mv); else mobSelCats.push(mv);
+        }
+        renderMobFilterBody();
+      };
+    });
+  }
+  mobFilterBtn && (mobFilterBtn.onclick=openMobFilter);
+  mobFilterClose && (mobFilterClose.onclick=closeMobFilter);
+  mobFilterOverlay && (mobFilterOverlay.onclick=closeMobFilter);
+  mobFilterReset && (mobFilterReset.onclick=()=>{ mobSelEras=[]; mobSelTypes=[]; mobSelCats=[]; renderMobFilterBody(); });
+  mobFilterApply && (mobFilterApply.onclick=()=>{
+    selEras=[...mobSelEras]; selTypes=[...mobSelTypes]; selCats=[...mobSelCats];
+    if(!selEras.length) selEras=['全部'];
+    apply();
+    closeMobFilter();
+  });
+
   // ── Update count badges ──
   function updateFilterCount(type){
     if(type==='era') document.getElementById('eraCount').textContent = selEras.length&&selEras[0]!=='全部' ? selEras.length : 0;
@@ -1841,7 +1953,7 @@ ${ratingHtml}
     if(d.sourceText) bd+=`<div class="md-sc"><div class="md-sb">📜 古籍原文</div><p class="md-tx sm md-src">"${stripMd(Array.isArray(d.sourceText)?d.sourceText.join(''):d.sourceText||'').replace(/"/g,'"').substring(0,300)}"</p></div>`;
     // ── v5.0 新增字段区块 ──
     if(d.nutritionTags&&d.nutritionTags.length) bd+=`<div class="md-sc"><div class="md-sb">🏷️ 营养标签</div><div class="md-tags">${d.nutritionTags.map(t=>`<span class="md-tg" style="background:var(--c3);color:#fff">${t}</span>`).join('')}</div></div>`;
-    if(d.suitable&&d.suitable.length) bd+=`<div class="md-sc"><div class="md-sb">👥 适宜人群</div><div class="md-tags">${d.suitable.map(s=>`<span class="md-tg" style="background:var(--c2)">${s}</span>`).join('')}</div></div>`;
+    if(d.suitable&&d.suitable.length) bd+=`<div class="md-sc"><div class="md-sb">👥 适宜人群</div><div class="md-tags">${d.suitable.map(s=>`<span class="md-tg" style="background:var(--c2);color:#fff">${s}</span>`).join('')}</div></div>`;
     if(d.allergens&&d.allergens.length) bd+=`<div class="md-sc"><div class="md-sb">⚠️ 过敏原提示</div><div class="md-tags">${d.allergens.map(a=>`<span class="md-tg" style="background:#e53935;color:#fff">${a}</span>`).join('')}</div></div>`;
     if(d.source) bd+=`<div class="md-sc"><div class="md-sb">📖 出处来源</div><p class="md-tx sm">📚 ${cleanSource(d.source)||d.source||''}</p></div>`;
     // Related recipes
