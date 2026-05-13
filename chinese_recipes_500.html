@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v5.3</title>
+  <title>中华美食千百道 v5.5</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -276,7 +276,13 @@
     .md-n{font-family:"Songti SC",SimSun,serif;font-size:1.5rem;font-weight:700;margin-bottom:8px}
     .md-mg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
     .md-tg{font-size:.875rem;color:var(--mt);background:var(--bg);padding:3px 10px;border-radius:10px;border:1px solid var(--bd);transition:background .3s,color .3s}
-    .md-tg.md-dif{color:var(--c3);border-color:var(--c3);font-size:1rem;letter-spacing:2px}
+    .md-tg.md-dif{font-size:1rem;letter-spacing:2px;padding:3px 10px}
+    .md-tg.md-dif.diff-easy{background:rgba(102,187,106,.15);color:#2e7d32;border-color:#66bb6a}
+    .md-tg.md-dif.diff-mid{background:rgba(255,112,67,.15);color:#bf360c;border-color:#ff7043}
+    .md-tg.md-dif.diff-hard{background:rgba(200,85,61,.15);color:#c62828;border-color:#e53935}
+    .md-tg.md-meta-dur.easy,.md-tg.md-meta-heat.easy{background:rgba(102,187,106,.12);color:#2e7d32;border-color:#a5d6a7}
+    .md-tg.md-meta-dur.mid,.md-tg.md-meta-heat.mid{background:rgba(255,112,67,.12);color:#bf360c;border-color:#ffab91}
+    .md-tg.md-meta-dur.hard,.md-tg.md-meta-heat.hard{background:rgba(200,85,61,.12);color:#c62828;border-color:#ef9a9a}
     .md-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .md-tags .md-tg{margin:0}
     .md-sc{margin-bottom:20px;display:flex;flex-direction:column;gap:10px}
@@ -434,7 +440,7 @@
   <span class="dly-rhs" id="dlyRhs"></span>
 </div>
 <header class="hdr">
-  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.3</span></div>
+  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.5</span></div>
   <div class="srch-wrap">
     <div class="srch-tabs">
       <button class="srch-tab on" data-tab="name">菜名</button>
@@ -1332,6 +1338,25 @@
     const b=parseInt(hex.slice(5,7),16)||0;
     return `${r},${g},${b}`;
   }
+  function getDiffLevel(d){
+    if(d>=4) return {lbl:'困难',cls:'diff-hard'};
+    if(d>=2) return {lbl:'中等',cls:'diff-mid'};
+    return {lbl:'简单',cls:'diff-easy'};
+  }
+  function getMetaDurCls(dur){
+    if(!dur) return 'md-meta-dur';
+    const m=parseInt(dur)||0;
+    if(m<30) return 'md-meta-dur easy';
+    if(m<=60) return 'md-meta-dur mid';
+    return 'md-meta-dur hard';
+  }
+  function getMetaHeatCls(heat){
+    if(!heat) return 'md-meta-heat';
+    const h=(heat||'').toLowerCase();
+    if(h.includes('微')||h.includes('小火')||h.includes('低温')) return 'md-meta-heat easy';
+    if(h.includes('旺')||h.includes('大火')||h.includes('高温')||h.includes('爆')) return 'md-meta-heat hard';
+    return 'md-meta-heat mid';
+  }
   function stripMd(text){
     if(!text) return '';
     return text.replace(/^#{1,6}\s+/gm,'').replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/^[-*+]\s+/gm,'').replace(/^\d+\.\s+/gm,'').replace(/`(.+?)`/g,'$1').replace(/\n{3,}/g,'\n\n').trim();
@@ -1945,6 +1970,7 @@
   ${avgRate?`<span class="rating-avg">均分 ${avgRate}</span>`:''}
   <span class="rating-my" id="ratingMy">${myRate?'我的 '+myRate+'★':'点击评分'}</span>
 </div>`;
+    const diffInfo=getDiffLevel(d.difficulty||1);
     let bd=`<h2 class="md-n">${d.name}</h2>
 ${effHtml}
 ${ratingHtml}
@@ -1952,11 +1978,11 @@ ${ratingHtml}
   <span class="md-tg">🌿 ${d.category}</span>
   <span class="md-tg">📅 ${d.era}</span>
   <span class="md-tg">🏆 ${d.cuisine||'地方菜'}</span>
-  <span class="md-tg">🔥 ${d.heat||'火候'}</span>
-  <span class="md-tg">⏱️ ${d.duration||'时长'}</span>
+  <span class="md-tg ${getMetaHeatCls(d.heat)}">🔥 ${d.heat||'火候'}</span>
+  <span class="md-tg ${getMetaDurCls(d.duration)}">⏱️ ${d.duration||'时长'}</span>
   <span class="md-tg">🍳 ${d.utensils||'锅具'}</span>
   ${d.calories?`<span class="md-tg">⚡${d.calories}千卡</span>`:''}
-  <span class="md-tg md-dif">${stars}</span>
+  <span class="md-tg md-dif ${diffInfo.cls}">${stars} ${diffInfo.lbl}</span>
 </div>`;
     if(d.history) bd+=`<div class="md-sc"><div class="md-sb">历史背景</div><p class="md-tx">${highlightHistory(d.history)}</p></div>`;
     if(d.authorBio) bd+=`<div class="md-sc"><div class="md-sb">作者简介</div><p class="md-tx sm">${stripMd(Array.isArray(d.authorBio)?d.authorBio.join(''):d.authorBio||'')}</p></div>`;
