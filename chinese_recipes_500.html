@@ -447,7 +447,7 @@
   <span class="dly-rhs" id="dlyRhs"></span>
 </div>
 <header class="hdr">
-  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.7</span></div>
+  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.8</span></div>
   <div class="srch-wrap">
     <div class="srch-tabs">
       <button class="srch-tab on" data-tab="name">菜名</button>
@@ -502,6 +502,13 @@
     <button class="srt-btn" data-s="type">按类型</button>
     <button class="srt-btn" data-s="rnd">随机</button>
   </div>
+</div>
+<div id="diffBar" style="display:flex;align-items:center;gap:6px;padding:4px 20px 6px;background:var(--bg);border-bottom:1px solid var(--bd)">
+  <span style="font-size:.75rem;color:var(--mt);white-space:nowrap">难度</span>
+  <button class="srt-btn" data-d="1" id="diffEasy" style="height:26px;padding:0 10px;border-radius:13px;font-size:.7rem">🟢 简单</button>
+  <button class="srt-btn" data-d="2" id="diffMed" style="height:26px;padding:0 10px;border-radius:13px;font-size:.7rem">🟡 中等</button>
+  <button class="srt-btn" data-d="3" id="diffHard" style="height:26px;padding:0 10px;border-radius:13px;font-size:.7rem">🔴 困难</button>
+  <button class="srt-btn" id="diffClear" style="height:26px;padding:0 10px;border-radius:13px;font-size:.7rem;display:none">✕ 清除</button>
 </div>
 <div class="ly">
   <nav class="sd" id="sidebar" aria-label="四维筛选">
@@ -1108,8 +1115,16 @@
   function renderHist(){
     const el = document.getElementById('srchHist');
     if(!HIST.length){ el.classList.remove('on'); return; }
-    el.innerHTML = HIST.map(h=>`<div class="srch-hi" data-q="${h}">🔍 ${h}</div>`).join('');
-    el.querySelectorAll('.srch-hi').forEach(div=>{
+    el.innerHTML = `<div class="srch-hi" id="clearAllHist" style="color:var(--c1);font-weight:600;border-bottom:1px solid var(--bd)">🗑️ 清空搜索历史</div>` +
+      HIST.map(h=>`<div class="srch-hi" data-q="${h}">🔍 ${h}</div>`).join('');
+    el.querySelector('#clearAllHist').onclick = () => {
+      if (confirm('确定清空全部搜索历史？')) {
+        HIST = [];
+        save(LS_HIST, HIST);
+        el.classList.remove('on');
+      }
+    };
+    el.querySelectorAll('.srch-hi[data-q]').forEach(div=>{
       div.onclick = ()=>{
         const q = div.dataset.q;
         document.getElementById('srch').value = q;
@@ -1123,6 +1138,21 @@
   const srchHistEl = document.getElementById('srchHist');
   srchEl.addEventListener('focus',()=>{ if(HIST.length) srchHistEl.classList.add('on'); });
   srchEl.addEventListener('blur',()=>{ setTimeout(()=>srchHistEl.classList.remove('on'),200); });
+  srchEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const q = srchEl.value.trim().toLowerCase();
+      if (!q) return;
+      curQ = q;
+      document.getElementById('clearSrch').classList.add('on');
+      if (curView !== 'main') setView('main');
+      document.querySelectorAll('#fltSrcBody input').forEach(inp => inp.checked = inp.dataset.word === curQ);
+      updateFilterCount('src');
+      addHist(curQ);
+      renderHist();
+      srchHistEl.classList.remove('on');
+      apply();
+    }
+  });
   srchEl.addEventListener('input',()=>{
     const q = srchEl.value.trim().toLowerCase();
     // Show/hide clear button
@@ -1277,6 +1307,36 @@
         apply();
       };
     });
+
+    // Difficulty filter buttons
+    let selDiff = null;
+    document.getElementById('diffEasy').onclick = () => {
+      selDiff = selDiff === 1 ? null : 1;
+      document.querySelectorAll('#diffBar .srt-btn[data-d]').forEach(b => b.classList.remove('on'));
+      if (selDiff) { document.getElementById('diffEasy').classList.add('on'); document.getElementById('diffClear').style.display=''; }
+      else document.getElementById('diffClear').style.display='none';
+      apply();
+    };
+    document.getElementById('diffMed').onclick = () => {
+      selDiff = selDiff === 2 ? null : 2;
+      document.querySelectorAll('#diffBar .srt-btn[data-d]').forEach(b => b.classList.remove('on'));
+      if (selDiff) { document.getElementById('diffMed').classList.add('on'); document.getElementById('diffClear').style.display=''; }
+      else document.getElementById('diffClear').style.display='none';
+      apply();
+    };
+    document.getElementById('diffHard').onclick = () => {
+      selDiff = selDiff === 3 ? null : 3;
+      document.querySelectorAll('#diffBar .srt-btn[data-d]').forEach(b => b.classList.remove('on'));
+      if (selDiff) { document.getElementById('diffHard').classList.add('on'); document.getElementById('diffClear').style.display=''; }
+      else document.getElementById('diffClear').style.display='none';
+      apply();
+    };
+    document.getElementById('diffClear').onclick = () => {
+      selDiff = null;
+      document.querySelectorAll('#diffBar .srt-btn[data-d]').forEach(b => b.classList.remove('on'));
+      document.getElementById('diffClear').style.display='none';
+      apply();
+    };
 
     // Solar terms chips
     const stEl = document.getElementById('stChips');
@@ -1837,7 +1897,12 @@
       if(selEffects.length){
         okEf = selEffects.some(e=>(d.effects||[]).includes(e));
       }
-      return okQ && okE && okT && okC && okCu && okSt && okFst && okEf;
+      // difficulty filter
+      let okDiff = true;
+      if(selDiff !== null){
+        okDiff = (d.difficulty || 1) === selDiff;
+      }
+      return okQ && okE && okT && okC && okCu && okSt && okFst && okEf && okDiff;
     });
     // Show era cover when no filters active (clean state)
     showCover = !curQ && selEras[0]==='全部' && !selTypes.length && !selCats.length && !selCuisines.length && !curSolarTerm && !curFestival && !selEffects.length;
@@ -1884,11 +1949,28 @@
     if(!FAVS.length) return;
     const favData=FAVS.map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
     g2._cardCount=favData.length;
-    favData.forEach((d,i)=>{
-      const card=makeCard(d,0);
-      g2.appendChild(card);
-      _allCards2.push(card);
-    });
+    // v5.8: 收藏>=6时按类别分组
+    if(FAVS.length>=6){
+      const grp={};
+      favData.forEach(d=>{ const c=d.category.split(' ')[0]; (grp[c]=grp[c]||[]).push(d); });
+      Object.entries(grp).forEach(([cat,items])=>{
+        const hdr=document.createElement('div');
+        hdr.className='rel-tl';
+        hdr.textContent=`${CAT_ICONS[cat]||'🍽️'} ${cat} (${items.length})`;
+        g2.appendChild(hdr);
+        items.forEach(d=>{
+          const card=makeCard(d,0);
+          g2.appendChild(card);
+          _allCards2.push(card);
+        });
+      });
+    } else {
+      favData.forEach((d,i)=>{
+        const card=makeCard(d,0);
+        g2.appendChild(card);
+        _allCards2.push(card);
+      });
+    }
     renderVisible();
     document.getElementById('cnt').innerHTML=`❤️ 收藏 <strong>${FAVS.length}</strong> 道菜`;
   }
@@ -1964,8 +2046,9 @@
     const img=d.image?`<img src="${d.image}" alt="${d.name}" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML+='${ph}'">`:ph;
     const eraShort=d.era.split('·')[0].split('（')[0];
     const eraColor=ERA_COLORS[d.era]||'var(--c1)';
+    const diffStars = Array(d.difficulty||1).fill('★').join('');
     c.innerHTML=`<span class="fav${isFaved(d.id)?' favored':''}">${isFaved(d.id)?'⭐':'🤍'}</span>
-      <div class="ci">${img}<span class="ci-tg">${eraShort}</span><span class="era-tag" style="background:${eraColor}">${d.era}</span><span class="ci-hv">查看详情</span></div>
+      <div class="ci">${img}<span class="ci-tg">${eraShort}</span><span class="era-tag" style="background:${eraColor}">${d.era}</span><span class="ci-hv">${diffStars}</span></div>
       <div class="cb"><div class="cn">${d.name}</div><div class="cs">${(d.cuisine_icon||'')+' '+(d.cuisine||cleanSource(d.source)||'来源待考')}</div><div class="cta">${(d.category.split(' ')[0])+' '+(d.category.split(' ')[1]||'')}</div></div>`;
     c.querySelector('.fav').onclick=(e)=>{e.stopPropagation();e.preventDefault();toggleFav(d.id);};
     c.onclick=()=>openM(d.id);
@@ -2027,7 +2110,7 @@ ${ratingHtml}
     if(d.steps){
       const stps=(Array.isArray(d.steps)?d.steps:d.steps.split('\n')).filter(s=>s.trim());
       const stpHtml=stps.map((s,i)=>`<div class="stp"><span class="sn">${i+1}</span><span class="md-tx" style="font-size:1rem">${s.replace(/^\d+\.\s*/,'')}</span></div>`).join('');
-      bd+=`<div class="md-sc"><div class="stp-hdr"><span class="md-sb" style="border:none;padding:0;font-size:.85rem">详细步骤</span><div style="display:flex;align-items:center;gap:8px"><button class="step-nav-btn" id="stepPrev" onclick="switchStep(-1)" disabled>▲</button><span class="stp-cur" style="font-size:.75rem;color:var(--mt)">第${mIdx+1}步/共${stps.length}步</span><button class="step-nav-btn" id="stepNext" onclick="switchStep(1)" disabled>▼</button></div></div>
+      bd+=`<div class="md-sc"><div class="stp-hdr"><span class="md-sb" style="border:none;padding:0;font-size:.85rem">详细步骤</span><div style="display:flex;align-items:center;gap:8px"><button class="step-nav-btn" id="stepPrev" onclick="switchStep(-1)" disabled>▲</button><span class="stp-cur" style="font-size:.75rem;color:var(--mt)">第${mIdx+1}步/共${stps.length}步</span><button class="step-nav-btn" id="stepNext" onclick="switchStep(1)" disabled>▼</button>${d.duration?`<span style="font-size:.7rem;color:var(--mt);margin-left:4px">⏱️约${d.duration}</span>`:''}</div></div>
         <div class="stp-prog"><div class="stp-bar" style="width:${Math.round(100/stps.length*1)}%"></div></div>
         ${stpHtml}`;
     }
