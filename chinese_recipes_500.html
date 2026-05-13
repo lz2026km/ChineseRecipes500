@@ -1953,7 +1953,7 @@ ${ratingHtml}
     if(d.sourceText) bd+=`<div class="md-sc"><div class="md-sb">📜 古籍原文</div><p class="md-tx sm md-src">"${stripMd(Array.isArray(d.sourceText)?d.sourceText.join(''):d.sourceText||'').replace(/"/g,'"').substring(0,300)}"</p></div>`;
     // ── v5.0 新增字段区块 ──
     if(d.nutritionTags&&d.nutritionTags.length) bd+=`<div class="md-sc"><div class="md-sb">🏷️ 营养标签</div><div class="md-tags">${d.nutritionTags.map(t=>`<span class="md-tg" style="background:var(--c3);color:#fff">${t}</span>`).join('')}</div></div>`;
-    if(d.suitable&&d.suitable.length) bd+=`<div class="md-sc"><div class="md-sb">👥 适宜人群</div><div class="md-tags">${d.suitable.map(s=>`<span class="md-tg" style="background:var(--c2);color:#fff">${s}</span>`).join('')}</div></div>`;
+    if(d.suitable&&d.suitable.length) bd+=`<div class="md-sc"><div class="md-sb">👥 适宜人群</div><div class="md-tags">${d.suitable.map(s=>`<span class="md-tg" style="background:var(--c2)!important;color:#fff!important">${s}</span>`).join('')}</div></div>`;
     if(d.allergens&&d.allergens.length) bd+=`<div class="md-sc"><div class="md-sb">⚠️ 过敏原提示</div><div class="md-tags">${d.allergens.map(a=>`<span class="md-tg" style="background:#e53935;color:#fff">${a}</span>`).join('')}</div></div>`;
     if(d.source) bd+=`<div class="md-sc"><div class="md-sb">📖 出处来源</div><p class="md-tx sm">📚 ${cleanSource(d.source)||d.source||''}</p></div>`;
     // Related recipes
