@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v5.5</title>
+  <title>中华美食千百道 v5.6</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -283,6 +283,7 @@
     .md-tg.md-meta-dur.easy,.md-tg.md-meta-heat.easy{background:rgba(102,187,106,.12);color:#2e7d32;border-color:#a5d6a7}
     .md-tg.md-meta-dur.mid,.md-tg.md-meta-heat.mid{background:rgba(255,112,67,.12);color:#bf360c;border-color:#ffab91}
     .md-tg.md-meta-dur.hard,.md-tg.md-meta-heat.hard{background:rgba(200,85,61,.12);color:#c62828;border-color:#ef9a9a}
+    .md-desc{font-style:italic;font-size:.9rem;color:var(--mt);border-left:3px solid var(--c3);padding-left:12px;margin-bottom:10px;line-height:1.6}
     .md-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .md-tags .md-tg{margin:0}
     .md-sc{margin-bottom:20px;display:flex;flex-direction:column;gap:10px}
@@ -440,7 +441,7 @@
   <span class="dly-rhs" id="dlyRhs"></span>
 </div>
 <header class="hdr">
-  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.5</span></div>
+  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.6</span></div>
   <div class="srch-wrap">
     <div class="srch-tabs">
       <button class="srch-tab on" data-tab="name">菜名</button>
@@ -1972,6 +1973,7 @@
 </div>`;
     const diffInfo=getDiffLevel(d.difficulty||1);
     let bd=`<h2 class="md-n">${d.name}</h2>
+${d.description?`<p class="md-desc">${stripMd(d.description).substring(0,50)}</p>`:''}
 ${effHtml}
 ${ratingHtml}
 <div class="md-mg">
