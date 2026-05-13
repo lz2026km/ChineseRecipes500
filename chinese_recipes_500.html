@@ -1209,14 +1209,32 @@
     // Cuisine quick chips
     const cuisineCnt = {};
     DATA.forEach(d=>{ const c=d.cuisine||'地方菜'; cuisineCnt[c]=(cuisineCnt[c]||0)+1; });
-    const CUISINE_COLORS = {'川菜':'#E53935','粤菜':'#FDD835','鲁菜':'#8D6E63','苏菜':'#66BB6A','浙菜':'#26C6DA','闽菜':'#AB47BC','湘菜':'#FF7043','徽菜':'#D4AF37','京菜':'#795548','东北菜':'#607D8B','官府菜':'#9E9E9E','宫廷菜':'#D4AF37','蒙古菜':'#8D6E63','素菜':'#43A047','地方菜':'#8D8D8D'};
+    const CUISINE_COLORS = {
+  '川菜':'#E53935','粤菜':'#FDD835','鲁菜':'#8D6E63','苏菜':'#66BB6A','浙菜':'#26C6DA',
+  '闽菜':'#AB47BC','湘菜':'#FF7043','徽菜':'#D4AF37','京菜':'#795548','东北菜':'#607D8B',
+  '官府菜':'#9E9E9E','宫廷菜':'#D4AF37','蒙古菜':'#8D6E63','素菜':'#43A047','地方菜':'#8D8D8D',
+  '日本料理':'#E53935','朝鲜菜':'#42A5F5','越南菜':'#66BB6A','琉球菜':'#AB47BC',
+  '贾府菜':'#795548','唐代宫廷菜':'#D4AF37','谭家菜':'#8D6E63','孔府菜':'#A1887F',
+  '随园菜':'#66BB6A','满汉全席':'#D4AF37','津菜':'#78909C','豫菜':'#A1887F',
+  '汉代面食':'#D4AF37','汉代药膳':'#66BB6A','汉代养生酒':'#E53935','汉代烧烤':'#8D6E63',
+  '北魏家常菜':'#8D6E63','魏晋养生酒':'#66BB6A','魏晋养生茶':'#66BB6A','魏晋养生':'#43A047',
+  '魏晋年节菜':'#FF7043','先秦饮食':'#A1887F','先秦家常菜':'#8D6E63','先秦名酒':'#E53935',
+  '先秦烧烤':'#8D6E63','先秦肉干':'#8D6E63','古代酱料':'#A1887F','古代调味菜':'#78909C',
+  '古代米食':'#D4AF37','先秦养生菜':'#43A047','道教养生菜':'#66BB6A','唐代药膳':'#D4AF37',
+  '唐代胡食':'#FF7043','唐代西域菜':'#FF7043','近代现代':'#607D8B','民间菜':'#A1887F',
+  '节令菜':'#66BB6A','广东菜':'#FDD835'
+};
     const qc = document.getElementById('qbarCuis');
     const sortedCuisines = Object.keys(cuisineCnt).sort((a,b)=>cuisineCnt[b]-cuisineCnt[a]);
     qc.innerHTML = sortedCuisines.map(cuisine=>{
       const c=cuisineCnt[cuisine]||0;
       const on=selCuisines.includes(cuisine);
       const color=CUISINE_COLORS[cuisine]||'var(--c1)';
-      return `<button class="qchip${on?' on':''}" data-cuisine="${cuisine}" style="${on?`background:${color};border-color:${color}`:''}">${cuisine}<span class="qnum">${c}</span></button>`;
+      const rgb=hexToRgb(color);
+      const style=on
+        ? `background:${color};border-color:${color};color:#fff`
+        : `background:rgba(${rgb},0.10);border-color:${color};color:${color}`;
+      return `<button class="qchip${on?' on':''}" data-cuisine="${cuisine}" style="${style}">${cuisine}<span class="qnum">${c}</span></button>`;
     }).join('');
     qc.querySelectorAll('.qchip').forEach(b=>{
       b.onclick = ()=>{
@@ -1307,6 +1325,13 @@
   }
 
   // ── Strip markdown ──
+  function hexToRgb(hex){
+    if(!hex||hex.startsWith('var(')) return '200,85,61';
+    const r=parseInt(hex.slice(1,3),16)||0;
+    const g=parseInt(hex.slice(3,5),16)||0;
+    const b=parseInt(hex.slice(5,7),16)||0;
+    return `${r},${g},${b}`;
+  }
   function stripMd(text){
     if(!text) return '';
     return text.replace(/^#{1,6}\s+/gm,'').replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/^[-*+]\s+/gm,'').replace(/^\d+\.\s+/gm,'').replace(/`(.+?)`/g,'$1').replace(/\n{3,}/g,'\n\n').trim();
