@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v5.6</title>
+  <title>中华美食千百道 v5.7</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -297,6 +297,9 @@
     .stp-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:.8rem;color:var(--mt)}
     .stp-prog{background:var(--bd);border-radius:10px;height:6px;overflow:hidden;margin-bottom:14px}
     .stp-bar{height:100%;background:linear-gradient(90deg,var(--c1),var(--c2));border-radius:10px;transition:width .3s}
+    .step-nav-btn{width:24px;height:24px;border:1px solid var(--bd);background:var(--bg);border-radius:6px;font-size:.7rem;cursor:pointer;color:var(--mt);transition:all .12s;display:flex;align-items:center;justify-content:center}
+    .step-nav-btn:hover:not(:disabled){border-color:var(--c1);color:var(--c1);background:rgba(200,85,61,.08)}
+    .step-nav-btn:disabled{opacity:.35;cursor:not-allowed}
     .md-share{display:flex;gap:8px;margin-bottom:16px}
     .share-btn{flex:1;height:38px;border:1.5px solid var(--bd);background:var(--sf);border-radius:19px;font-size:.8rem;cursor:pointer;color:var(--tx);display:flex;align-items:center;justify-content:center;gap:6px;transition:all .12s;font-family:inherit}
     .share-btn:hover{border-color:var(--c1);color:var(--c1);background:rgba(200,85,61,.05)}
@@ -304,11 +307,14 @@
     .md-rel{margin-top:8px}
     .rel-tl{font-size:.8rem;font-weight:700;color:var(--mt);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em}
     .rel-grd{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .rel-cr{background:var(--bg);border-radius:10px;overflow:hidden;cursor:pointer;border:1px solid var(--bd);transition:transform .15s,box-shadow .15s}
+    .rel-cr{background:var(--bg);border-radius:10px;overflow:hidden;cursor:pointer;border:1px solid var(--bd);transition:transform .15s,box-shadow .15s;position:relative}
     .rel-cr:hover{transform:translateY(-2px);box-shadow:0 4px 12px var(--sh)}
     .rel-ci{height:70px;overflow:hidden;position:relative;background:linear-gradient(135deg,#f5e6d3,#e8d5c4)}
     .rel-ci img{width:100%;height:100%;object-fit:cover}
     .rel-ci-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+    .rel-ci-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(44,24,16,.7) 0%,transparent 60%);opacity:0;transition:opacity .2s;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;pointer-events:none}
+    .rel-cr:hover .rel-ci-overlay{opacity:1}
+    .rel-ci-overlay span{color:#fff;font-size:.7rem;font-weight:600}
     .rel-cb{padding:8px 10px}
     .rel-cn{font-size:.8rem;font-weight:700;font-family:"Songti SC",SimSun,serif;line-height:1.3;margin-bottom:2px}
     .rel-cs{font-size:.7rem;color:var(--mt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -441,7 +447,7 @@
   <span class="dly-rhs" id="dlyRhs"></span>
 </div>
 <header class="hdr">
-  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.6</span></div>
+  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.7</span></div>
   <div class="srch-wrap">
     <div class="srch-tabs">
       <button class="srch-tab on" data-tab="name">菜名</button>
@@ -1358,6 +1364,26 @@
     if(h.includes('旺')||h.includes('大火')||h.includes('高温')||h.includes('爆')) return 'md-meta-heat hard';
     return 'md-meta-heat mid';
   }
+  let curStep=0;
+  function updateStepBar(){
+    const bar=document.querySelector('.stp-bar');
+    const lbl=document.querySelector('.stp-cur');
+    const sp=document.getElementById('stepPrev');
+    const sn=document.getElementById('stepNext');
+    if(bar&&lbl){ const total=(filtered[mIdx]?.steps?.length||1); bar.style.width=(Math.round(100/total*(curStep+1)))+'%'; lbl.textContent=`第${curStep+1}步/共${total}步`; }
+    if(sp){ sp.disabled=curStep<=0; }
+    if(sn){ const total=(filtered[mIdx]?.steps?.length||1); sn.disabled=curStep>=total-1; }
+  }
+  function switchStep(dir){
+    const total=(filtered[mIdx]?.steps?.length||1);
+    const md=document.getElementById('md');
+    md.classList.add('transitioning');
+    setTimeout(()=>{
+      curStep=Math.max(0,Math.min(total-1,curStep+dir));
+      updateStepBar();
+      md.classList.remove('transitioning');
+    },180);
+  }
   function stripMd(text){
     if(!text) return '';
     return text.replace(/^#{1,6}\s+/gm,'').replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/^[-*+]\s+/gm,'').replace(/^\d+\.\s+/gm,'').replace(/`(.+?)`/g,'$1').replace(/\n{3,}/g,'\n\n').trim();
@@ -1949,6 +1975,7 @@
 
   // ── Modal ──
   function openM(id){
+    curStep=0;
     const realIdx = filtered.findIndex(d => d.id === id);
     if (realIdx < 0) return;
     mIdx = realIdx; const d = filtered[mIdx];
@@ -2000,7 +2027,7 @@ ${ratingHtml}
     if(d.steps){
       const stps=(Array.isArray(d.steps)?d.steps:d.steps.split('\n')).filter(s=>s.trim());
       const stpHtml=stps.map((s,i)=>`<div class="stp"><span class="sn">${i+1}</span><span class="md-tx" style="font-size:1rem">${s.replace(/^\d+\.\s*/,'')}</span></div>`).join('');
-      bd+=`<div class="md-sc"><div class="stp-hdr"><span class="md-sb" style="border:none;padding:0;font-size:.85rem">详细步骤</span><span style="font-size:.75rem;color:var(--mt)">第${mIdx+1}步/共${stps.length}步</span></div>
+      bd+=`<div class="md-sc"><div class="stp-hdr"><span class="md-sb" style="border:none;padding:0;font-size:.85rem">详细步骤</span><div style="display:flex;align-items:center;gap:8px"><button class="step-nav-btn" id="stepPrev" onclick="switchStep(-1)" disabled>▲</button><span class="stp-cur" style="font-size:.75rem;color:var(--mt)">第${mIdx+1}步/共${stps.length}步</span><button class="step-nav-btn" id="stepNext" onclick="switchStep(1)" disabled>▼</button></div></div>
         <div class="stp-prog"><div class="stp-bar" style="width:${Math.round(100/stps.length*1)}%"></div></div>
         ${stpHtml}`;
     }
@@ -2019,7 +2046,7 @@ ${ratingHtml}
         const rIcon=CAT_ICONS[r.category]||'🍽️';
         const rPh=r.image?`<img src="${r.image}" alt="${r.name}" onerror="this.parentElement.innerHTML='<div class=rel-ci-ph>${rIcon}</div>'">`:`<div class="rel-ci-ph">${rIcon}</div>`;
         bd+=`<div class="rel-cr" data-rel="${r.id}">
-          <div class="rel-ci">${rPh}</div>
+          <div class="rel-ci">${rPh}<div class="rel-ci-overlay"><span>查看详情 →</span></div></div>
           <div class="rel-cb"><div class="rel-cn">${r.name}</div><div class="rel-cs">${cleanSource(r.source)||r.era}</div></div>
         </div>`;
       });
