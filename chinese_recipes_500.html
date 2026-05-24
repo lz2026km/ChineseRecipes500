@@ -27,7 +27,8 @@
     [data-theme="dark"][data-season="winter"]{--bg:#1C2428;--sf:#263238;--tx:#ECEFF1;--mt:#90A4AE;--bd:#37474F;--sh:rgba(0,0,0,.4);--bg2:#263238;--tx2:#B0BEC5}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{font-size:18px;scroll-behavior:smooth}
-    body{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;transition:background .3s,color .3s}
+body{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;transition:background .3s;color .3s;display:flex;flex-direction:column}
+.site-footer{text-align:center;padding:12px;font-size:.75rem;color:var(--mt);border-top:1px solid var(--bd);margin-top:auto}
     /* 水墨纹理背景 */
     body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.6}
     body>*{position:relative;z-index:1}
@@ -2765,5 +2766,8 @@ ${ratingHtml}
     });
 })();
 </script>
+<footer class="site-footer">
+  <span>© 2025 中华美食千百道 · 所有者：LZ</span>
+</footer>
 </body>
 </html>
