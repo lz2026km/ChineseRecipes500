@@ -3,14 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v7.4</title>
+  <title>中华美食千百道 v7.5</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
       --bg2:#F5EDE3;--tx2:#1A0F0A;
-    }
-    html{scroll-behavior:smooth}
-    /* 节气主题色 v2.5 */
+      /* 节气主题色 v2.5 */
       --season-primary:#C8553D;--season-secondary:#E8A87C;--season-accent:#D4AF37;
     }
     /* 四季主题 */
@@ -452,7 +450,7 @@
   <span class="dly-rhs" id="dlyRhs"></span>
 </div>
 <header class="hdr">
-  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v7.4</span></div>
+  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v7.5</span></div>
   <div class="srch-wrap">
     <div class="srch-tabs">
       <button class="srch-tab on" data-tab="name">菜名</button>
@@ -2062,7 +2060,7 @@
     if(!FAVS.length) return;
     const favData=FAVS.map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
     g2._cardCount=favData.length;
-    // v7.4: 收藏>=6时按类别分组
+    // v7.5: 收藏>=6时按类别分组
     if(FAVS.length>=6){
       const grp={};
       favData.forEach(d=>{ const c=d.category.split(' ')[0]; (grp[c]=grp[c]||[]).push(d); });
