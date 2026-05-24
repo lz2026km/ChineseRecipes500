@@ -701,6 +701,7 @@
     {id:10, name:'料理机', material:'塑料/不锈钢杯体', usage:'将食材切小块放入杯中，盖紧杯盖，选择合适档位，启动机器后逐渐加速，间歇操作效果更佳。', maintenance:'使用后及时清洗，刀片小心轻放，电机部分不可浸水，晾干后组装存放。', taboo:'忌连续运转时间过长、忌放入过热液体、忌杯体空转、忌电机进水。', suitable:'搅拌奶昔、绞肉、制作辅食。'}
   ];
 
+  function escHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));}
   function save(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
   function load(k,def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; }catch(e){ return def; } }
 
@@ -2160,7 +2161,7 @@
     const diffStars = Array(d.difficulty||1).fill('★').join('');
     c.innerHTML=`<span class="fav${isFaved(d.id)?' favored':''}">${isFaved(d.id)?'⭐':'🤍'}</span>
       <div class="ci">${img}<span class="ci-tg">${eraShort}</span><span class="era-tag" style="background:${eraColor}">${d.era}</span><span class="ci-hv">${diffStars}</span></div>
-      <div class="cb"><div class="cn">${d.name}</div><div class="cs">${(d.cuisine_icon||'')+' '+(d.cuisine||cleanSource(d.source)||'来源待考')}</div><div class="cta">${(d.category.split(' ')[0])+' '+(d.category.split(' ')[1]||'')}</div></div>`;
+      <div class="cb"><div class="cn">${escHtml(d.name)}</div><div class="cs">${escHtml((d.cuisine_icon||'')+' '+(d.cuisine||cleanSource(d.source)||'来源待考'))}</div><div class="cta">${escHtml((d.category.split(' ')[0])+' '+(d.category.split(' ')[1]||''))}</div></div>`;
     c.querySelector('.fav').onclick=(e)=>{e.stopPropagation();e.preventDefault();toggleFav(d.id);};
     c.onclick=()=>openM(d.id);
     c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openM(d.id);}};
