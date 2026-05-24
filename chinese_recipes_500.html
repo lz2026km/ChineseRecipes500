@@ -755,7 +755,7 @@
     const slice=carouselPool.slice(start,start+CAROUSEL_COUNT);
     track.innerHTML=slice.map((d,i)=>{
       const icon=CAT_ICONS[d.category]||'🍽️';
-      const ph=d.image?`<img src="${d.image}" alt="${d.name}" onerror="this.parentElement.innerHTML='<div class=carousel-ci-ph>${icon}</div>'">`:`<div class="carousel-ci-ph">${icon}</div>`;
+      const ph=d.image?`<img src="${d.image}" alt="${escHtml(d.name)}" onerror="this.parentElement.innerHTML='<div class=carousel-ci-ph>${icon}</div>'">`:`<div class="carousel-ci-ph">${icon}</div>`;
       return `<div class="carousel-card" data-id="${d.id}">
         <div class="carousel-ci">${ph}</div>
         <div class="carousel-cb">
@@ -2155,13 +2155,13 @@
     c.dataset.i=i; c.dataset.id=d.id;
     const icon=CAT_ICONS[d.category]||'🍽️';
     const ph=`<div class="ci-ph">${icon}</div>`;
-    const img=d.image?`<img src="${d.image}" alt="${d.name}" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML+='${ph}'">`:ph;
+    const img=d.image?`<img src="${d.image}" alt="${escHtml(d.name)}" loading="lazy" onerror="this.parentElement.innerHTML='${ph}'">`:ph;
     const eraShort=d.era.split('·')[0].split('（')[0];
     const eraColor=ERA_COLORS[d.era]||'var(--c1)';
     const diffStars = Array(d.difficulty||1).fill('★').join('');
     c.innerHTML=`<span class="fav${isFaved(d.id)?' favored':''}">${isFaved(d.id)?'⭐':'🤍'}</span>
       <div class="ci">${img}<span class="ci-tg">${eraShort}</span><span class="era-tag" style="background:${eraColor}">${d.era}</span><span class="ci-hv">${diffStars}</span></div>
-      <div class="cb"><div class="cn">${escHtml(d.name)}</div><div class="cs">${escHtml((d.cuisine_icon||'')+' '+(d.cuisine||cleanSource(d.source)||'来源待考'))}</div><div class="cta">${escHtml((d.category.split(' ')[0])+' '+(d.category.split(' ')[1]||''))}</div></div>`;
+      <div class="cb"><div class="cn">${escHtml(d.name)}</div><div class="cs">${escHtml(d.cuisine||cleanSource(d.source)||'来源待考')}</div><div class="cta">${(()=>{const p=escHtml(d.category).split(' ');return p[0]+' '+(p[1]||'');})()}</div></div>`;
     c.querySelector('.fav').onclick=(e)=>{e.stopPropagation();e.preventDefault();toggleFav(d.id);};
     c.onclick=()=>openM(d.id);
     c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openM(d.id);}};
