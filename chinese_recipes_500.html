@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>中华美食千百道 v5.8</title>
+  <title>中华美食千百道 v7.4</title>
   <style>
     :root{
       --c1:#C8553D;--c2:#E8A87C;--c3:#D4AF37;--bg:#FDF6EC;--sf:#FFF;--tx:#2C1810;--mt:#8B7355;--bd:#E8D5C4;--sh:rgba(44,24,16,.1);
@@ -59,6 +59,11 @@
     .srch-hi{padding:10px 16px;cursor:pointer;font-size:.875rem;color:var(--tx);display:flex;align-items:center;gap:8px;transition:background .1s}
     .srch-hi:hover{background:var(--bg)}
     .srch-hi mark{background:rgba(200,85,61,.15);color:var(--c1);border-radius:3px}
+    .hot-srch-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--sf);border:1px solid var(--bd);border-radius:12px;box-shadow:0 4px 16px var(--sh);z-index:200;overflow:hidden;display:none;padding:8px 0}
+    .hot-srch-panel.on{display:block}
+    .hot-srch-tit{padding:6px 14px 4px;font-size:.7rem;color:var(--mt);font-weight:700;display:flex;align-items:center;gap:4px}
+    .hot-srch-tag{padding:5px 12px;margin:3px 6px;border-radius:16px;font-size:.8rem;cursor:pointer;background:rgba(76,175,80,.12);color:#2e7d32;border:1px solid rgba(76,175,80,.3);transition:all .12s;display:inline-block}
+    .hot-srch-tag:hover{background:rgba(76,175,80,.22)}
     /* Search tabs */
     .srch-wrap{flex:1;max-width:500px;display:flex;flex-direction:column;gap:6px}
     .srch-tabs{display:flex;gap:2px;padding:3px;background:var(--bg);border-radius:10px;width:100%}
@@ -447,7 +452,7 @@
   <span class="dly-rhs" id="dlyRhs"></span>
 </div>
 <header class="hdr">
-  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v5.8</span></div>
+  <div class="hdr-tl" id="hdrTl" title="回首页">🍜 中华<span>美食</span>千百道 <span style="font-size:.7rem;color:var(--mt)">v7.4</span></div>
   <div class="srch-wrap">
     <div class="srch-tabs">
       <button class="srch-tab on" data-tab="name">菜名</button>
@@ -459,6 +464,7 @@
       <input type="search" id="srch" placeholder="搜索菜名…" aria-label="搜索菜谱" autocomplete="off">
       <span class="si2" id="clearSrch">✕</span>
       <div class="srch-hist" id="srchHist"></div>
+      <div class="hot-srch-panel" id="hotSrchPanel"></div>
     </div>
   </div>
   <div class="hdr-actions">
@@ -682,6 +688,20 @@
   let curSolarTerm = '';
   let curFestival = '';
   let selEffects = [];
+
+  // ── KITCHEN_UTENSILS: 厨房器具使用指南 ──
+  const KITCHEN_UTENSILS = [
+    {id:1, name:'炒锅', material:'铁/不锈铁', usage:'先将锅身预热至微微冒烟，倒入油转动锅体润锅，热锅凉油下料翻炒，动作需快以防粘连。', maintenance:'使用后用温水清洗避免用钢丝球，洗后将锅擦干并小火烘干，涂抹薄油可防锈。', taboo:'忌空烧、忌用冷水直接冲洗热锅、忌长时间存放酸性食物。', suitable:'家庭日常炒菜、爆炒类菜肴。'},
+    {id:2, name:'不粘锅', material:'铝合金+涂层', usage:'冷锅冷油或小火预热，倒入食材后中火烹饪，使用木铲或硅胶铲轻翻，减少涂层磨损。', maintenance:'用软布海绵清洗，忌尖锐金属工具擦刮，不可用干烧，定期检查涂层是否脱落。', taboo:'忌高温干烧、忌用金属铲、忌用钢丝球、忌制作坚硬骨刺类食材。', suitable:'煎蛋、煎饼、炒软质食材。'},
+    {id:3, name:'砂锅', material:'陶土/紫砂', usage:'用冷水浸泡30分钟后擦干使用，小火预热后转中火，忌骤冷骤热，炖煮时盖紧锅盖锁住蒸汽。', maintenance:'避免使用洗涤剂，清洗时用清水浸泡刷洗，晾干后存放在干燥通风处。', taboo:'忌干烧、忌冷水直接冲入热砂锅、忌急冷急热以防开裂。', suitable:'炖汤、红烧、煲仔饭。'},
+    {id:4, name:'蒸锅', material:'不锈钢/竹木', usage:'将水烧开后放上蒸架，食材置于盘中或碗中加盖，大火蒸制，保持蒸汽充足，中途尽量少掀盖。', maintenance:'使用后清洗干净并晾干，不锈钢蒸格可用软刷清洗，竹制笼屉晾晒防霉。', taboo:'忌干烧、忌水位过低、忌蒸制时间过长导致水烧干。', suitable:'清蒸鱼、蒸馒头、蒸点心。'},
+    {id:5, name:'高压锅', material:'铝合金/不锈钢', usage:'将食材和水放入锅内，盖紧锅盖，大火加热至限压阀排气后调小火，保持稳定压力烹饪。', maintenance:'每次使用后清洗密封圈，晾干后归位，定期检查安全阀和限压阀是否通畅。', taboo:'忌超过容量3/4、忌擅自加压、忌无人看守、忌冷却强行开盖。', suitable:'炖骨头汤、煮豆类、炖肉。'},
+    {id:6, name:'电饭煲', material:'铝合金内胆+不粘涂层', usage:'洗净后加入适量米和水，盖好盖子选择功能键，煮饭后保温键亮起后再焖5分钟口感更佳。', maintenance:'内胆用软布清洗，勿用金属铲，胶圈要定期清洁排气孔，保持干燥防止异味。', taboo:'忌内胆空烧、忌用尖锐工具刮擦涂层、忌浸水时间过长。', suitable:'煮米饭、煮粥、煲汤、做蛋糕。'},
+    {id:7, name:'微波炉', material:'金属外壳+玻璃内胆', usage:'使用微波专用容器，加热时覆盖透气盖或纸巾，中高火加热液体时搅动以防暴沸。', maintenance:'定期用柠檬水清洁内壁，保持门封清洁，无转盘机型定期清理底部。', taboo:'忌金属容器、忌封闭容器、忌加热整颗鸡蛋、忌使用塑料非微波专用容器。', suitable:'快速加热饭菜、解冻、烤制简餐。'},
+    {id:8, name:'烤箱', material:'不锈钢外壳+搪瓷内胆', usage:'使用前预热10分钟，放入食材关闭门，调节上下火温度和时间，观察窗监控烘烤状态。', maintenance:'使用后待冷却擦拭内壁，定期清理烤盘油渍，检查加热管是否有油污附着。', taboo:'忌塑料容器、忌密封罐、忌空烧、忌使用金属光泽装饰的餐具。', suitable:'烘焙蛋糕、烤鸡翅、烤制面食。'},
+    {id:9, name:'空气炸锅', material:'塑料外壳+不粘锅内胆', usage:'将食材放入炸篮，设定温度和时间，自动气流循环加热，中途可拉开查看或翻面。', maintenance:'炸篮和内壁用温水浸泡后清洗，勿浸泡整机，定期清理加热管上的油污。', taboo:'忌使用金属容器、忌干烧、忌油量过多、忌制作爆米花等密闭食材。', suitable:'炸薯条、烤鸡腿、烤蔬菜干。'},
+    {id:10, name:'料理机', material:'塑料/不锈钢杯体', usage:'将食材切小块放入杯中，盖紧杯盖，选择合适档位，启动机器后逐渐加速，间歇操作效果更佳。', maintenance:'使用后及时清洗，刀片小心轻放，电机部分不可浸水，晾干后组装存放。', taboo:'忌连续运转时间过长、忌放入过热液体、忌杯体空转、忌电机进水。', suitable:'搅拌奶昔、绞肉、制作辅食。'}
+  ];
 
   function save(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
   function load(k,def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; }catch(e){ return def; } }
@@ -1136,8 +1156,40 @@
   }
   const srchEl = document.getElementById('srch');
   const srchHistEl = document.getElementById('srchHist');
-  srchEl.addEventListener('focus',()=>{ if(HIST.length) srchHistEl.classList.add('on'); });
-  srchEl.addEventListener('blur',()=>{ setTimeout(()=>srchHistEl.classList.remove('on'),200); });
+  const hotSrchPanel = document.getElementById('hotSrchPanel');
+
+  // ── Hot search panel ──
+  const HOT_TERMS = ['红烧肉','宫保鸡丁','糖醋排骨','鱼香肉丝','麻婆豆腐','清蒸鱼','回锅肉','酸菜鱼','东坡肉','佛跳墙','北京烤鸭','麻辣火锅'];
+  function renderHotSrchPanel(){
+    if(!hotSrchPanel) return;
+    hotSrchPanel.innerHTML = `<div class="hot-srch-tit">🔥 热门搜索</div>` +
+      HOT_TERMS.map(t=>`<span class="hot-srch-tag" data-q="${t}">${t}</span>`).join('');
+    hotSrchPanel.querySelectorAll('.hot-srch-tag').forEach(tag=>{
+      tag.onclick = ()=>useHotSrch(tag.dataset.q);
+    });
+  }
+  function useHotSrch(q){
+    if(!q) return;
+    document.getElementById('srch').value = q;
+    curQ = q.toLowerCase();
+    document.getElementById('clearSrch').classList.add('on');
+    if(curView !== 'main') setView('main');
+    addHist(curQ);
+    hotSrchPanel.classList.remove('on');
+    srchHistEl.classList.remove('on');
+    apply();
+  }
+  renderHotSrchPanel();
+
+  srchEl.addEventListener('focus',()=>{
+    if(HIST.length){
+      srchHistEl.classList.add('on');
+      hotSrchPanel.classList.remove('on');
+    } else {
+      hotSrchPanel.classList.add('on');
+    }
+  });
+  srchEl.addEventListener('blur',()=>{ setTimeout(()=>{ srchHistEl.classList.remove('on'); hotSrchPanel.classList.remove('on'); },200); });
   srchEl.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       const q = srchEl.value.trim().toLowerCase();
@@ -1464,10 +1516,71 @@
     return stripMd(text).replace(/(重要|著名|珍贵|独特|秘方|传统|经典|宫廷|御用|养生|药膳)/g,'<strong>$1</strong>');
   }
 
+  // ── 烹饪技法数据表 ──
+  const COOKING_TECHNIQUES = [
+    {id:1, name:'炒', alias:'旺火快炒', description:'以旺火快速翻炒食材，使其在高温下迅速成熟，保持脆嫩口感和鲜艳色泽。', keyPoints:['油温要高，翻炒要快','食材切配均匀保证同步成熟','中途勿加水'], commonMistakes:['火候不足导致出水过多','翻炒不匀导致生熟不均'], suitableDishes:'宫保鸡丁、鱼香肉丝、炒青菜'},
+    {id:2, name:'煮', alias:'水煮烹饪', description:'将食材放入沸水或温水中加热至熟，口感软嫩入味，适合各类肉类和蔬菜。', keyPoints:['水量要没过食材','根据质地控制火候和时间','出锅前加盐最佳'], commonMistakes:['冷水下锅导致腥味重','煮制过久口感过烂'], suitableDishes:'白斩鸡、煮面条、火锅蘸料'},
+    {id:3, name:'蒸', alias:'蒸汽加热', description:'利用蒸汽的热力使食材成熟，能最大程度保留营养和原汁原味。', keyPoints:['水沸后上锅','不同食材蒸制时间不同','保持蒸笼密闭'], commonMistakes:['火力不足蒸汽不够','蒸制过久食材变老'], suitableDishes:'清蒸鲈鱼、粉蒸肉、蒸蛋羹'},
+    {id:4, name:'煎', alias:'油煎慢热', description:'以少量油用中小火慢慢煎制食材，使其表面金黄酥脆，内里保持软嫩。', keyPoints:['锅要烧热再放油','保持中小火候','耐心等待一面金黄再翻'], commonMistakes:['火过大导致外焦里生','频繁翻动破坏完整性'], suitableDishes:'煎饺、煎蛋、锅贴'},
+    {id:5, name:'炸', alias:'油炸高热', description:'将食材完全浸入热油中，使其快速成熟并形成酥脆外壳的烹饪方法。', keyPoints:['油温需达六成热以上','分批次炸避免油温骤降','捞出后趁热调味'], commonMistakes:['油温过低导致吸油过多','炸制过久口感干硬'], suitableDishes:'糖醋里脊、炸麻花、春卷'},
+    {id:6, name:'爆', alias:'急火快爆', description:'以极旺的火在极短时间内将食材爆炒至熟，是最能体现锅气的技法。', keyPoints:['锅中油温要高','食材刀工需细碎均匀','调味提前备好快速下锅'], commonMistakes:['火候不够失去爆炒特色','操作过慢食材过老'], suitableDishes:'火爆腰花、爆炒虾仁、爆双脆'},
+    {id:7, name:'烩', alias:'汤汁烩制', description:'将多种食材放入汤锅中烩制，使汤汁浓稠、食材入味的复合味烹饪法。', keyPoints:['汤汁勾薄芡更佳','食材需分别处理至不同熟度','保持微沸状态烩制'], commonMistakes:['芡汁过厚口感腻','食材搭配不当味道冲突'], suitableDishes:'烩三鲜、烩面筋、烩鸡杂'},
+    {id:8, name:'焖', alias:'盖锅焖煮', description:'将食材加调料煮沸后加盖以小火慢焖，使调料味道渗入食材内部的烹饪法。', keyPoints:['加盖前需大火收汁','小火慢焖保持汤汁微沸','注意观察防止糊锅'], commonMistakes:['火候过大导致糊锅','焖制时间不足不入味'], suitableDishes:'红烧肉、黄焖鸡、焖笋'},
+    {id:9, name:'炖', alias:'文火慢炖', description:'将食材与汤汁一起用文火长期加热，使肉质软烂、汤汁鲜美的烹饪法。', keyPoints:['冷水下锅一次性加足水','大块食材需炖制更久','撇清浮沫保证汤色清澈'], commonMistakes:['中途加水冲淡鲜味','大火快煮导致肉质发柴'], suitableDishes:'佛跳墙、炖牛肉、炖鸡汤'},
+    {id:10, name:'卤', alias:'卤水浸泡', description:'将食材放入调配好的卤水中长期浸泡入味的烹饪法，成品色泽深郁味道浓厚。', keyPoints:['卤水需提前熬制存放','食材需彻底焯水去腥','浸泡时间越长越入味'], commonMistakes:['卤水反复使用不换新','食材腌制过咸'], suitableDishes:'卤牛肉、卤鸭脖、卤豆干'},
+    {id:11, name:'酱', alias:'酱料焖煮', description:'以酱料为主要调味品，将食材焖煮入味，使成菜具有浓郁的酱香风味。', keyPoints:['酱料需先炒香再下食材','小火焖煮让酱味渗透','收汁时需勤翻动防止糊'], commonMistakes:['酱料炒糊影响风味','火候过大导致糊锅'], suitableDishes:'酱肘子、酱牛肉、酱爆鸡丁'},
+    {id:12, name:'熏', alias:'烟熏上色', description:'利用燃料产生的烟气熏烤食材，使成品具有独特的烟熏香味和色泽。', keyPoints:['熏制前需风干表面','控制烟量避免过浓','选择合适的熏材'], commonMistakes:['熏制过久口感发苦','烟量过大导致色泽发黑'], suitableDishes:'熏鱼、熏肉、熏蛋'},
+    {id:13, name:'腌', alias:'盐渍腌制', description:'利用盐、糖等调料渗入食材细胞内，使其脱水并入味的保鲜和调味方法。', keyPoints:['盐糖比例要恰当','冷藏腌制更安全卫生','腌制时间需充足'], commonMistakes:['腌制过咸无法补救','室温腌制导致变质'], suitableDishes:'腌白菜、腊肉、腌笃鲜'},
+    {id:14, name:'拌', alias:'调味拌和', description:'将煮熟或生的食材与调料混合拌匀，使调料均匀裹附在食材表面的烹饪法。', keyPoints:['食材需处理成适合入口的小块','趁热拌入调料更易入味','现拌现吃保持脆嫩'], commonMistakes:['调料顺序不当影响口感','拌好后久置出水'], suitableDishes:'凉拌黄瓜、皮蛋拌豆腐、拌面'},
+    {id:15, name:'炝', alias:'炝锅调味', description:'将食材用沸水焯烫后，再用热油炝锅快速调味，使食材保持脆嫩并带有独特香气的烹饪法。', keyPoints:['焯水时间要短保持脆嫩','热油炝锅激发香气','快速调味趁热拌匀'], commonMistakes:['焯水过久失去脆嫩','油温不足香气不足'], suitableDishes:'炝拌萝卜丝、炝腰片、炝黄瓜'},
+    {id:16, name:'拔丝', alias:'糖浆拉丝', description:'将糖熬至金黄拔丝状态，再裹附在食材表面形成的独特甜品技法。', keyPoints:['糖浆熬制需控制火候','食材需提前炸至酥脆','快速翻裹使糖浆均匀裹附'], commonMistakes:['糖浆熬制过度发苦','裹糖后未及时食用糖丝会返潮'], suitableDishes:'拔丝地瓜、拔丝苹果、拔丝香蕉'},
+    {id:17, name:'挂霜', alias:'糖霜裹衣', description:'将糖熬至白色结晶状，再裹附在食材表面形成一层糖霜的甜品技法。', keyPoints:['糖浆需熬至翻砂状态','食材需保持温热便于裹糖','环境湿度低效果更佳'], commonMistakes:['糖浆熬制不足无法挂霜','环境潮湿糖霜发黏'], suitableDishes:'挂霜花生、挂霜腰果、挂霜山楂'},
+    {id:18, name:'糖醋', alias:'酸甜调味', description:'以糖和醋为主要调料，烹制出酸甜可口风味的经典烹饪技法。', keyPoints:['糖醋比例约为2:1','需两次火攻先炸后溜','油温控制是成功关键'], commonMistakes:['糖醋比例失衡口味怪异','炸制时油温过低导致浸油'], suitableDishes:'糖醋里脊、糖醋鱼、糖醋排骨'},
+    {id:19, name:'干烧', alias:'无水干烧', description:'不加水或少加水，以小火慢烧使汤汁收干，让调料味道完全渗入食材的烹饪法。', keyPoints:['火候需小防止糊锅','需不断晃锅翻动食材','汤汁收干时调味最宜'], commonMistakes:['火候过大导致糊锅','收汁过久导致焦糊'], suitableDishes:'干烧鱼、干烧冬笋、干烧四季豆'},
+    {id:20, name:'滑油', alias:'油滑定型', description:'将食材表面裹上薄浆，放入温油中快速滑过，使表面迅速定型并保持嫩滑的技法。', keyPoints:['油温控制在三四成热','食材下锅后轻轻滑散','滑油后立刻进行下一步烹调'], commonMistakes:['油温过高导致外焦里生','油温过低导致脱浆'], suitableDishes:'滑蛋虾仁、滑熘里脊、滑炒鸡片'}
+  ];
+
   // ── State ──
   let DATA = [], CATS = {}, filtered = [], mIdx = -1;
 
-
+  // ── 烹饪术语对照表 COOKING_GLOSSARY ──
+  // 格式：{id, zh, en, definition, example}
+  // 共30条：刀工(1-10)、火候(11-20)、调味(21-30)、烹法(31-40)各10条
+  const COOKING_GLOSSARY = [
+    // 刀工 (1-10)
+    {id:1,zh:'切',en:'Cut/Slice',definition:'用刀将食材分割成所需形状的动作',example:'将萝卜切成细丝，细如发丝'},
+    {id:2,zh:'剁',en:'Chop',definition:'用刀反复砍断食材，适合肉类或硬质蔬菜',example:'剁碎肉末，需剁至黏稠上劲'},
+    {id:3,zh:'砍',en:'Hack/Cleave',definition:'大力切断坚韧食材，如砍骨',example:'砍断鸡腿骨时要稳准'},
+    {id:4,zh:'削',en:'Peel/Trim',definition:'用刀薄层去除食材表皮',example:'削去黄瓜外皮保留翠绿'},
+    {id:5,zh:'劈',en:'Split',definition:'将食材纵向大力劈开成两半',example:'将生姜劈开便于取汁'},
+    {id:6,zh:'片',en:'Slice',definition:'将食材切成薄而平的片状',example:'羊肉片要切得薄如蝉翼'},
+    {id:7,zh:'切丁',en:'Dice',definition:'将食材切成约1厘米见方的小块',example:'土豆切丁，大小要均匀'},
+    {id:8,zh:'切末',en:'Mince',definition:'将食材切成极细碎末状',example:'葱姜切末爆出香味'},
+    {id:9,zh:'花刀',en:'Score/Cross-hatch',definition:'在食材表面划出网纹状刀痕',example:'鱿鱼打花刀受热卷起美观'},
+    {id:10,zh:'滚刀块',en:'Oblique cut',definition:'斜刀切成不规则块状',example:'萝卜滚刀块易入味且形状多样'},
+    // 火候 (11-20)
+    {id:11,zh:'大火爆',en:'High heat',definition:'火焰旺盛适合快速翻炒锁住食材水分',example:'大火爆炒可保持蔬菜翠绿脆嫩'},
+    {id:12,zh:'中火炖',en:'Medium heat simmer',definition:'火候中等适合慢慢煨煮食材',example:'中火炖肉，肉质软烂入味'},
+    {id:13,zh:'小火焖',en:'Low heat braise',definition:'微弱火候长时间焖煮使食材熟透',example:'小火焖煮让汤汁逐渐收浓'},
+    {id:14,zh:'文火慢煎',en:'Gentle fry',definition:'火候温和适合煎制表皮金黄',example:'文火煎至两面金黄不焦糊'},
+    {id:15,zh:'急火快蒸',en:'Instant steam',definition:'大蒸汽迅速蒸熟食材保持嫩度',example:'急火快蒸鱼，肉质鲜嫩'},
+    {id:16,zh:'慢火熬',en:'Slow boil',definition:'长时间小沸煮出食材精华',example:'慢火熬制高汤味道醇厚'},
+    {id:17,zh:'收汁',en:'Reduce sauce',definition:'加热使汤汁浓缩包裹食材',example:'大火收汁至黏稠挂在菜上'},
+    {id:18,zh:'焙',en:'Bake/Toast',definition:'利用干热使食材表面干燥增香',example:'焙干香料激发浓郁香气'},
+    {id:19,zh:'焯水',en:'Blanch',definition:'沸水中快速烫煮食材去腥或定型',example:'肉片焯水去血沫更干净'},
+    {id:20,zh:'过油',en:'Blanch in oil',definition:'快速油炸使食材表面定型上色',example:'排骨过油后色泽金黄诱人'},
+    // 调味 (21-30)
+    {id:21,zh:'上浆',en:'Marinate with starch',definition:'用淀粉水溶液包裹食材增加嫩滑',example:'肉丝上浆后口感更滑嫩'},
+    {id:22,zh:'挂糊',en:'Coat with batter',definition:'食材外裹面糊后油炸增酥脆',example:'挂糊后炸出外酥里嫩口感'},
+    {id:23,zh:'勾芡',en:'Thicken with starch',definition:'加入水淀粉使汤汁浓稠',example:'起锅前勾芡使汤汁光润'},
+    {id:24,zh:'码味',en:'Season base',definition:'提前用调料腌制食材入味',example:'码味半小时让肉更鲜嫩'},
+    {id:25,zh:'腌制',en:'Pickle/Cure',definition:'用盐糖等调料长时间浸泡食材',example:'腌制酸菜需要耐心等待发酵'},
+    {id:26,zh:'调味',en:'Season',definition:'添加盐糖酱油等调整菜品味道',example:'最后调味要尝过再下勺'},
+    {id:27,zh:'提鲜',en:'Enhance umami',definition:'加入鸡精味精或高汤提升鲜味',example:'少许糖和醋提鲜去腥'},
+    {id:28,zh:'定味',en:'Fix flavor',definition:'在烹调中途固定食材底味',example:'红烧时早放酱油定基础色调'},
+    {id:29,zh:'码芡',en:'Marinate with sauce',definition:'用调料提前拌匀食材',example:'码芡使肉片提前入味上色'},
+    {id:30,zh:'淋汁',en:'Pour sauce',definition:'将调好味汁淋在成菜表面',example:'出锅前淋上热油激出香气'}
+  ];
 
   // 撑开容器总高度
   // updateContainerHeight 虚拟滚动已禁用
@@ -1949,7 +2062,7 @@
     if(!FAVS.length) return;
     const favData=FAVS.map(id=>DATA.find(d=>d.id===id)).filter(Boolean);
     g2._cardCount=favData.length;
-    // v5.8: 收藏>=6时按类别分组
+    // v7.4: 收藏>=6时按类别分组
     if(FAVS.length>=6){
       const grp={};
       favData.forEach(d=>{ const c=d.category.split(' ')[0]; (grp[c]=grp[c]||[]).push(d); });
@@ -2466,6 +2579,34 @@ ${ratingHtml}
     return POEMS['default'];
   }
 
+  // 二十四节气菜谱推荐
+  const SOLAR_TERM_RECIPES=[
+    {id:1,term:'立春',date:'2月3-5日',recommended:['春饼','萝卜芽菜','韭黄炒蛋'],dietTips:'宜吃辛温发散食物，助阳气升发，忌辛辣油腻',suitable:'春季过敏体质者宜少食',soup:'枸杞猪肝汤'},
+    {id:2,term:'雨水',date:'2月18-20日',recommended:['薏米红豆粥','香菇油菜','蜂蜜银耳羹'],dietTips:'宜健脾祛湿，忌生冷黏腻，多吃新鲜蔬菜',suitable:'湿气重人群宜多食',soup:'冬瓜排骨汤'},
+    {id:3,term:'惊蛰',date:'3月5-7日',recommended:['雪梨川贝羹','韭菜炒虾仁','荠菜豆腐羹'],dietTips:'宜清肝润肺，忌辛辣刺激，多食富含维生素C食物',suitable:'咽喉不适者宜多食',soup:'莲子百合汤'},
+    {id:4,term:'春分',date:'3月20-22日',recommended:['香椿炒蛋','枸杞叶猪肝汤','桂花糯米藕'],dietTips:'宜平补养肝，忌大寒大热，适度运动舒展筋骨',suitable:'肝火旺盛者宜多食',soup:'山药乌鸡汤'},
+    {id:5,term:'清明',date:'4月4-6日',recommended:['青团','荠菜馄饨','菊花鱼片羹'],dietTips:'宜疏肝理气，忌发物辛辣，多吃苦味食物清肝火',suitable:'高血压患者宜多食',soup:'薏米老鸭汤'},
+    {id:6,term:'谷雨',date:'4月19-21日',recommended:['香椿拌豆腐','龙井虾仁','红枣薏米粥'],dietTips:'宜祛湿健脾，忌肥甘厚味，多吃新鲜绿叶蔬菜',suitable:'脾胃虚弱者宜多食',soup:'莲子芡实猪肚汤'},
+    {id:7,term:'立夏',date:'5月5-7日',recommended:['酸梅汤','苦瓜酿肉','荷叶茯苓粥'],dietTips:'宜清心降火，忌燥热辛辣，多食酸味食物生津止渴',suitable:'心火旺盛者宜多食',soup:'莲子麦冬猪心汤'},
+    {id:8,term:'小满',date:'5月21-23日',recommended:['凉拌苦瓜','冬瓜薏米汤','清蒸鳜鱼'],dietTips:'宜清热祛湿，忌湿热食物，适度吃苦味清心火',suitable:'湿热体质者宜多食',soup:'玉米须薏米汤'},
+    {id:9,term:'芒种',date:'6月5-7日',recommended:['酸梅汤','绿豆糕','凉拌黄瓜'],dietTips:'宜清热解暑，忌辛温燥热，多食清淡流质食物',suitable:'暑热烦渴者宜多食',soup:'丝瓜豆腐鱼片汤'},
+    {id:10,term:'夏至',date:'6月21-22日',recommended:['凉面','荷叶粉蒸肉','百合绿豆汤'],dietTips:'宜清心火养心神，忌大热大补，多食酸甜开胃食物',suitable:'心烦失眠者宜多食',soup:'酸枣仁猪心汤'},
+    {id:11,term:'小暑',date:'7月6-8日',recommended:['凉拌三丝','绿豆百合粥','清蒸鲈鱼'],dietTips:'宜清热解暑，忌油腻辛辣，适度食用苦味食物清火',suitable:'暑热体质者宜多食',soup:'冬瓜海带汤'},
+    {id:12,term:'大暑',date:'7月22-24日',recommended:['凉皮','西瓜翠衣汤','苦瓜排骨汤'],dietTips:'宜清热泻火，忌过度贪凉，多食凉性食物解暑热',suitable:'中暑烦热者宜多食',soup:'莲藕绿豆脊骨汤'},
+    {id:13,term:'立秋',date:'8月7-9日',recommended:['莲子百合粥','清蒸莲藕盒','银耳雪梨羹'],dietTips:'宜润肺生津，忌辛辣发散，多食白色食物润燥',suitable:'秋燥咳嗽者宜多食',soup:'沙参玉竹老鸭汤'},
+    {id:14,term:'处暑',date:'8月22-24日',recommended:['百合莲子银耳汤','红烧茄子','山楂麦芽饮'],dietTips:'宜养阴润燥，忌苦寒辛散，多食酸甘食物滋阴',suitable:'阴虚火旺者宜多食',soup:'石斛麦冬汤'},
+    {id:15,term:'白露',date:'9月7-9日',recommended:['龙眼莲子羹','川贝蒸梨','糯米莲藕'],dietTips:'宜补气养血，忌寒凉食物，多食温热性质食物',suitable:'气血两虚者宜多食',soup:'当归红枣鸡汤'},
+    {id:16,term:'秋分',date:'9月22-24日',recommended:['菊花鱼片汤','桂花糯米粥','枸杞炒肉丝'],dietTips:'宜平补阴阳，忌偏颇饮食，多食润燥生津食物',suitable:'秋燥便秘者宜多食',soup:'海底椰无花果汤'},
+    {id:17,term:'寒露',date:'10月8-10日',recommended:['板栗烧鸡','山药枸杞粥','核桃芝麻糊'],dietTips:'宜滋阴润燥，忌辛辣发散，多食黑色食物补肾',suitable:'肾虚腰酸者宜多食',soup:'杜仲巴戟猪尾汤'},
+    {id:18,term:'霜降',date:'10月23-24日',recommended:['柿饼银耳羹','萝卜炖牛腩','红枣桂圆茶'],dietTips:'宜进补御寒，忌过度苦寒，多食温补气血食物',suitable:'畏寒肢冷者宜多食',soup:'当归生姜羊肉汤'},
+    {id:19,term:'立冬',date:'11月7-8日',recommended:['羊肉饺子','红烧海参','八宝粥'],dietTips:'宜温补肾阳，忌生冷寒凉，多食热量较高的温热食物',suitable:'阳虚怕冷者宜多食',soup:'虫草花鸡汤'},
+    {id:20,term:'小雪',date:'11月22-23日',recommended:['腌笃鲜','黑芝麻糊','红烧羊肉'],dietTips:'宜温补气血，忌辛辣燥热，多食黑色入肾食物',suitable:'血虚头晕者宜多食',soup:'当归红花汤'},
+    {id:21,term:'大雪',date:'12月6-8日',recommended:['红糖姜茶','桂圆红枣粥','当归羊肉锅'],dietTips:'宜温补助阳，忌寒凉生冷，多食热量高能温阳食物',suitable:'虚寒体质者宜多食',soup:'八珍乌鸡汤'},
+    {id:22,term:'冬至',date:'12月21-23日',recommended:['饺子','汤圆','八宝饭'],dietTips:'宜补肾温阳，忌耗散伤正，多食黑色食物和坚果',suitable:'腰膝酸冷者宜多食',soup:'巴戟杜仲猪腰汤'},
+    {id:23,term:'小寒',date:'1月5-7日',recommended:['糯米饭','腊八粥','红枣枸杞茶'],dietTips:'宜温中散寒，忌寒凉食物，多食温热性质甘味食物',suitable:'胃寒疼痛者宜多食',soup:'胡椒猪肚汤'},
+    {id:24,term:'大寒',date:'1月20-22日',recommended:['当归羊肉汤','八宝饭','红糖姜枣茶'],dietTips:'宜大补元气，忌耗散伤阴，多食高热量温补食物',suitable:'久病体虚者宜多食',soup:'灵芝黄芪鸡汤'}
+  ];
+
   // 宜忌（基于节气）
   const YIJI={
     spring:{yi:['宜疏肝','宜养阳','宜踏青'],ji:['忌辛辣','忌动怒']},
@@ -2575,6 +2716,30 @@ ${ratingHtml}
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
+
+  // ── 食材营养成分表 ──
+  const NUTRITION_DATA = [
+    {id:1,name:'米饭',category:'主食',calories:116,protein:2.6,fat:0.3,carbs:25.9,fiber:0.3,vitaminC:0,calcium:10,iron:0.3,benefits:'补中益气、健脾养胃',taboo:'糖尿病患者少食'},
+    {id:2,name:'面条',category:'主食',calories:137,protein:4.5,fat:1.1,carbs:25.0,fiber:1.8,vitaminC:0,calcium:13,iron:1.2,benefits:'补充能量、易消化',taboo:'肥胖者适量'},
+    {id:3,name:'猪肉',category:'肉类',calories:143,protein:20.3,fat:6.8,carbs:0.9,fiber:0,vitaminC:1.1,calcium:8,iron:1.6,benefits:'补虚强身、滋阴润燥',taboo:'高血脂患者限量'},
+    {id:4,name:'牛肉',category:'肉类',calories:125,protein:22.6,fat:5.1,carbs:1.8,fiber:0,vitaminC:1.8,calcium:9,iron:2.5,benefits:'补气养血、强筋健骨',taboo:'湿疹患者忌食'},
+    {id:5,name:'鸡肉',category:'肉类',calories:167,protein:19.3,fat:9.4,carbs:1.3,fiber:0,vitaminC:4.5,calcium:8,iron:0.9,benefits:'温中益气、补精添髓',taboo:'痛风患者慎食'},
+    {id:6,name:'鸡蛋',category:'蛋类',calories:144,protein:13.3,fat:8.8,carbs:1.5,fiber:0,vitaminC:0,calcium:56,iron:2.0,benefits:'滋阴润燥、养心安神',taboo:'胆囊炎患者限量'},
+    {id:7,name:'豆腐',category:'豆制品',calories:81,protein:8.1,fat:3.7,carbs:3.8,fiber:0.4,vitaminC:0,calcium:164,iron:1.9,benefits:'清热润燥、生津解毒',taboo:'痛风患者慎食'},
+    {id:8,name:'白菜',category:'蔬菜',calories:18,protein:1.4,fat:0.1,carbs:3.1,fiber:0.9,vitaminC:37.5,calcium:69,iron:0.5,benefits:'清热解毒、通利肠胃',taboo:'胃寒者少食'},
+    {id:9,name:'西红柿',category:'蔬菜',calories:15,protein:0.7,fat:0.1,carbs:3.3,fiber:1.2,vitaminC:14.0,calcium:8,iron:0.5,benefits:'生津止渴、健胃消食',taboo:'空腹不宜生食'},
+    {id:10,name:'土豆',category:'蔬菜',calories:76,protein:2.0,fat:0.1,carbs:15.5,fiber:1.5,vitaminC:15.0,calcium:15,iron:0.7,benefits:'和胃健中、解毒消肿',taboo:'发芽土豆禁食'},
+    {id:11,name:'胡萝卜',category:'蔬菜',calories:35,protein:0.9,fat:0.2,carbs:7.9,fiber:2.8,vitaminC:9.0,calcium:32,iron:0.7,benefits:'健脾消食、补肝明目',taboo:'过量食用皮肤发黄'},
+    {id:12,name:'苹果',category:'水果',calories:49,protein:0.3,fat:0.2,carbs:12.4,fiber:2.2,vitaminC:4.0,calcium:8,iron:0.3,benefits:'生津润肺、健脾开胃',taboo:'胃酸过多者少食'},
+    {id:13,name:'香蕉',category:'水果',calories:89,protein:1.4,fat:0.2,carbs:20.8,fiber:1.2,vitaminC:8.0,calcium:7,iron:0.4,benefits:'清热润肠、润肺止咳',taboo:'糖尿病患者少食'},
+    {id:14,name:'牛奶',category:'饮品',calories:54,protein:3.0,fat:3.2,carbs:3.4,fiber:0,vitaminC:0,calcium:104,iron:0.1,benefits:'补虚损、益肺胃',taboo:'乳糖不耐受者慎食'},
+    {id:15,name:'绿茶',category:'饮品',calories:1,protein:0.1,fat:0,fiber:0,vitaminC:0.2,calcium:2,iron:0.1,benefits:'清热提神、利尿解毒',taboo:'失眠者午后忌饮'},
+    {id:16,name:'蜂蜜',category:'调味品',calories:321,protein:0.3,fat:1.9,carbs:79.5,fiber:0,vitaminC:2.0,calcium:3,iron:0.3,benefits:'补中润燥、止痛解毒',taboo:'一岁以下婴儿禁食'},
+    {id:17,name:'核桃',category:'坚果',calories:646,protein:14.2,fat:58.2,carbs:9.5,fiber:4.3,vitaminC:1.0,calcium:56,iron:2.3,benefits:'补肾温肺、润肠通便',taboo:'腹泻者忌食'},
+    {id:18,name:'花生',category:'坚果',calories:563,protein:22.0,fat:45.0,carbs:22.0,fiber:6.3,vitaminC:0.3,calcium:45,iron:2.9,benefits:'健脾和胃、润肺化痰',taboo:'胆囊切除者慎食'},
+    {id:19,name:'豆腐干',category:'豆制品',calories:140,protein:15.8,fat:6.2,carbs:2.5,fiber:0.5,vitaminC:0,calcium:299,iron:4.8,benefits:'益气和中、清热解毒',taboo:'高尿酸患者限量'},
+    {id:20,name:'虾',category:'水产',calories:93,protein:18.4,fat:0.6,carbs:1.9,fiber:0,vitaminC:0,calcium:68,iron:1.3,benefits:'补肾壮阳、通乳解毒',taboo:'过敏体质者慎食'}
+  ];
 
   // ── Init ──
   showSk();
